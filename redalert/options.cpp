@@ -91,7 +91,7 @@ OptionsClass::OptionsClass(void)
     ScoreVolume(".25")
     ,
 #ifdef FIXIT_VERSION_3
-    MultiScoreVolume("0")
+    MultiScoreVolume(".25")
     ,
 #endif
     Brightness(1, 2)

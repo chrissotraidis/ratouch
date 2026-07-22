@@ -67,6 +67,21 @@ int main()
     }
     SoundImp_Shutdown_Sample(second_sample);
 
+    SoundImp_Buffer_Sample_Data(sample, pcm.data(), pcm.size() * sizeof(int16_t));
+    SoundImp_Start_Sample(sample);
+    if (!SoundImp_ResumeSound()) {
+        return Fail("SDL audio backend did not resume for refill test");
+    }
+    SDL_Delay(250);
+    if (SoundImp_Sample_Status(sample)) {
+        return Fail("drained sample did not report its temporary underrun");
+    }
+    SoundImp_Buffer_Sample_Data(sample, pcm.data(), pcm.size() * sizeof(int16_t));
+    if (!SoundImp_Sample_Status(sample)) {
+        return Fail("streaming sample did not resume after a refill gap");
+    }
+    SoundImp_Stop_Sample(sample);
+
     SoundImp_Set_Sample_Attributes(sample, 8, false, 11025);
     std::vector<uint8_t> pcm8(1024, 128);
     SoundImp_Buffer_Sample_Data(sample, pcm8.data(), pcm8.size());

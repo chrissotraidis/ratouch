@@ -469,42 +469,41 @@ void Set_Video_Cursor_Clip(bool clipped)
     hwcursor.Clip = clipped;
 
     if (window) {
-        int relative;
+        const SDL_bool was_relative = SDL_GetRelativeMouseMode();
+        SDL_bool wants_relative = SDL_FALSE;
 
         if (Settings.Video.Windowed) {
-            SDL_SetWindowGrab(window, hwcursor.Clip ? SDL_TRUE : SDL_FALSE);
-            relative = SDL_SetRelativeMouseMode(
-                Settings.Mouse.ControllerEnabled || (Settings.Mouse.RawInput && hwcursor.Clip) ? SDL_TRUE : SDL_FALSE);
-
-            /*
-            ** When grabbing with raw input, move in-game cursor where the real cursor was and vice versa.
-            */
-            if (Settings.Mouse.RawInput) {
-                if (hwcursor.Clip) {
-                    int window_x = 0;
-                    int window_y = 0;
-                    int game_x = 0;
-                    int game_y = 0;
-                    SDL_GetMouseState(&window_x, &window_y);
-                    Map_Video_Window_Point(window_x, window_y, game_x, game_y);
-                    hwcursor.X = game_x;
-                    hwcursor.Y = game_y;
-                } else {
-                    float window_x = 0.0f;
-                    float window_y = 0.0f;
-                    Video_Game_Point_To_Window(
-                        Current_Presentation_Geometry(), hwcursor.X, hwcursor.Y, window_x, window_y);
-                    SDL_WarpMouseInWindow(window, static_cast<int>(window_x), static_cast<int>(window_y));
-                }
-            }
+            SDL_SetWindowGrab(window, SDL_FALSE);
         } else {
             SDL_SetWindowGrab(window, SDL_TRUE);
-            relative = SDL_SetRelativeMouseMode(Settings.Mouse.RawInput ? SDL_TRUE : SDL_FALSE);
+            wants_relative = Video_Use_Relative_Mouse(Settings.Mouse.RawInput, Settings.Video.Windowed)
+                ? SDL_TRUE
+                : SDL_FALSE;
         }
 
-        if (relative < 0) {
+        if (SDL_SetRelativeMouseMode(wants_relative) < 0) {
             DBG_ERROR("Raw input not supported, disabling.");
             Settings.Mouse.RawInput = false;
+            return;
+        }
+
+        if (Settings.Mouse.RawInput && was_relative != wants_relative) {
+            if (wants_relative == SDL_TRUE) {
+                int window_x = 0;
+                int window_y = 0;
+                int game_x = 0;
+                int game_y = 0;
+                SDL_GetMouseState(&window_x, &window_y);
+                Map_Video_Window_Point(window_x, window_y, game_x, game_y);
+                hwcursor.X = game_x;
+                hwcursor.Y = game_y;
+            } else {
+                float window_x = 0.0f;
+                float window_y = 0.0f;
+                Video_Game_Point_To_Window(
+                    Current_Presentation_Geometry(), hwcursor.X, hwcursor.Y, window_x, window_y);
+                SDL_WarpMouseInWindow(window, static_cast<int>(window_x), static_cast<int>(window_y));
+            }
         }
     }
 }
@@ -544,7 +543,7 @@ void Get_Video_Mouse(int& x, int& y)
 
 bool Is_Video_Relative_Mouse_Active()
 {
-    return Settings.Mouse.RawInput && (hwcursor.Clip || !Settings.Video.Windowed);
+    return Video_Use_Relative_Mouse(Settings.Mouse.RawInput, Settings.Video.Windowed);
 }
 
 void Set_Video_Mouse(int x, int y)

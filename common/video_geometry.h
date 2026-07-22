@@ -18,6 +18,7 @@ struct VideoPresentationGeometry
 bool Video_Geometry_Is_Valid(const VideoPresentationGeometry& geometry);
 bool Video_Window_Point_In_Presentation(const VideoPresentationGeometry& geometry, float window_x, float window_y);
 bool Video_Presentation_Button_Event(bool pressed, bool inside_presentation, bool& accepted);
+bool Video_Use_Relative_Mouse(bool raw_input, bool windowed);
 void Video_Window_Point_To_Game(const VideoPresentationGeometry& geometry,
                                 float window_x,
                                 float window_y,

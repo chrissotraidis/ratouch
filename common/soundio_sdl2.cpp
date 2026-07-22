@@ -34,6 +34,8 @@ struct SampleTrackerTypeImp
     int LastChunkBytes = 1;
     unsigned int Volume = 65536;
     bool Playing = false;
+    bool Started = false;
+    int EmptyCallbacks = 0;
 };
 
 namespace
@@ -61,12 +63,16 @@ void Audio_Callback(void*, Uint8* output, int length)
 
         const int bytes = SDL_AudioStreamGet(sample->Stream, sample->Scratch, std::min(length, sample->ScratchSize));
         if (bytes > 0) {
+            sample->EmptyCallbacks = 0;
             const int volume = std::min<int>(SDL_MIX_MAXVOLUME,
                                              sample->Volume * SDL_MIX_MAXVOLUME / 65536U);
             SDL_MixAudioFormat(output, sample->Scratch, State->Output.format, bytes, volume);
         }
         if (bytes <= 0 && SDL_AudioStreamAvailable(sample->Stream) <= 0) {
-            sample->Playing = false;
+            ++sample->EmptyCallbacks;
+            if (sample->EmptyCallbacks > 1) {
+                sample->Playing = false;
+            }
         }
     }
 
@@ -100,6 +106,10 @@ void SoundImp_Buffer_Sample_Data(SampleTrackerTypeImp* sample, const void* data,
     if (SDL_AudioStreamPut(sample->Stream, data, static_cast<int>(length)) == 0) {
         const int after = SDL_AudioStreamAvailable(sample->Stream);
         sample->LastChunkBytes = std::max(1, after - before);
+        sample->EmptyCallbacks = 0;
+        if (sample->Started) {
+            sample->Playing = true;
+        }
     }
     SDL_UnlockAudioDevice(State->Device);
 }
@@ -219,6 +229,8 @@ void SoundImp_Set_Sample_Attributes(SampleTrackerTypeImp* sample, int bits, bool
         sample->Frequency = rate;
         sample->LastChunkBytes = 1;
         sample->Playing = false;
+        sample->Started = false;
+        sample->EmptyCallbacks = 0;
     }
     SDL_UnlockAudioDevice(State->Device);
 }
@@ -267,6 +279,8 @@ void SoundImp_Start_Sample(SampleTrackerTypeImp* sample)
     }
     SDL_LockAudioDevice(State->Device);
     sample->Playing = SDL_AudioStreamAvailable(sample->Stream) > 0;
+    sample->Started = sample->Playing;
+    sample->EmptyCallbacks = 0;
     SDL_UnlockAudioDevice(State->Device);
 }
 
@@ -278,6 +292,8 @@ void SoundImp_Stop_Sample(SampleTrackerTypeImp* sample)
     SDL_LockAudioDevice(State->Device);
     SDL_AudioStreamClear(sample->Stream);
     sample->Playing = false;
+    sample->Started = false;
+    sample->EmptyCallbacks = 0;
     sample->LastChunkBytes = 1;
     SDL_UnlockAudioDevice(State->Device);
 }

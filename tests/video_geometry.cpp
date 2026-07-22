@@ -33,6 +33,11 @@ int main()
     assert(!Video_Presentation_Button_Event(true, false, accepted));
     assert(!accepted);
     assert(!Video_Presentation_Button_Event(false, true, accepted));
+
+    assert(!Video_Use_Relative_Mouse(true, true));
+    assert(Video_Use_Relative_Mouse(true, false));
+    assert(!Video_Use_Relative_Mouse(false, true));
+    assert(!Video_Use_Relative_Mouse(false, false));
     assert(Video_Presentation_Button_Event(true, true, accepted));
     assert(accepted);
     assert(Video_Presentation_Button_Event(false, false, accepted));
