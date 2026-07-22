@@ -79,7 +79,7 @@ RAtouch is an active alpha, not a packaged public release.
 
 | Area | Current evidence |
 | --- | --- |
-| Gameplay | Intro, menus, Allied campaign, briefing, mission play, skirmish, expansion menus, save/load, and lifecycle autosave exercised with legally supplied Steam 2229840 data |
+| Gameplay | Intro, menus, Allied campaign, briefing, mission play, bases-on skirmish construction and placement, expansion menus, save/load, and lifecycle autosave exercised with legally supplied Steam 2229840 data |
 | iPad input | Direct selection and orders, two-finger pan, pinch zoom, long-press right-click, control groups, keyboard-free commands, hardware keyboard, pointer, and touch settings exercised in Simulator |
 | macOS input | Retina-aware pointer mapping, aligned clicks and software cursor, configurable 25–200% speed, edge scrolling, native window/fullscreen, menus, and clean quit autosave |
 | Data safety | Native folder/file/ISO picker, structural validation, known-file hashes, atomic import, provenance receipt, staged replacement, and save export |

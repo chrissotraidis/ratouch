@@ -6,7 +6,7 @@ This is the working contract for making the original simulation comfortable on i
 
 | Gesture | Engine action | Player intent | Current proof |
 | --- | --- | --- | --- |
-| Tap | Cursor move, left down, left up | Select, order, activate original UI | Unit selection and movement verified in Simulator |
+| Tap | Cursor move, left down, left up | Select, order, activate original UI | Unit selection, movement, MCV deployment, sidebar production, and completed-building placement verified in Simulator; invalid footprints retain placement mode as in original Red Alert |
 | One-finger drag after 6, 8, or 12 pt | Left down at the original point, move, left up | Classic drag-box selection | A native XCTest finger drag over the live Allied mission restored four unit health bars after deselection; deterministic motion, reconfiguration, and fast-release tests cover the edges, while physical-device feel remains a gate |
 | Long press for 450, 600, or 750 ms | Right down, right up | Deselect / original right-click | A native 800 ms Simulator finger hold removed all selected-unit health bars and exposed the exact terrain tooltip under the hold; optional light haptic wiring still requires physical-device feel proof |
 | Two-finger drag after an 8 pt intent dead zone | Presentation-mapped finger travel through the engine's analog-scroll path, optionally inverted | Directly pan without touch edge-scroll or a fixed-speed jump | Live persisted direction setting plus deterministic dead-zone, proportional-distance, consume-once, and eight-direction compound-motion tests; neither Simulator's standard host UI nor public XCTest gesture APIs expose two-finger translation, so physical-device direction/velocity tuning remains |
