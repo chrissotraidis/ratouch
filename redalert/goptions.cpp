@@ -74,6 +74,7 @@ void GameOptionsClass::Process(void)
 #ifdef IOS_BUILD
     // The engine dialog owns input until it returns. Keeping the native tactical
     // deck active here lets commands and one-shot modifiers leak over a modal.
+    bool restore_command_overlay = true;
     Ratouch_Set_Command_Overlay_Visible(false);
 #endif
 
@@ -507,17 +508,26 @@ void GameOptionsClass::Process(void)
 
                     case 0:
                         process = false;
+#ifdef IOS_BUILD
+                        restore_command_overlay = false;
+#endif
                         Queue_Exit();
                         break;
 
                     case 2:
                         PlayerRestarts = true;
                         process = false;
+#ifdef IOS_BUILD
+                        restore_command_overlay = false;
+#endif
                         break;
                     }
                 } else {
                     if (Surrender_Dialog(TXT_CONFIRM_EXIT)) {
                         process = false;
+#ifdef IOS_BUILD
+                        restore_command_overlay = false;
+#endif
                         Queue_Exit();
                     } else {
                         display = true;
@@ -592,7 +602,9 @@ void GameOptionsClass::Process(void)
     Map.Render();
 
 #ifdef IOS_BUILD
-    Ratouch_Set_Command_Overlay_Visible(true);
+    if (restore_command_overlay) {
+        Ratouch_Set_Command_Overlay_Visible(true);
+    }
 #endif
 }
 

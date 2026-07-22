@@ -65,6 +65,9 @@
 #include "factory.h"
 #include "carry.h"
 #include "common/framelimit.h"
+#ifdef IOS_BUILD
+#include "common/ios_controls.h"
+#endif
 
 extern int PreserveVQAScreen;
 
@@ -1340,6 +1343,12 @@ void Do_Restart(void)
     Keyboard->Clear();
 
     Map.Render();
+
+#ifdef IOS_BUILD
+    // Restart dismisses the native tactical deck with the Options dialog. The
+    // replacement battlefield owns restoring it once the new map is rendered.
+    Ratouch_Set_Command_Overlay_Visible(true);
+#endif
 }
 
 /***********************************************************************************************
