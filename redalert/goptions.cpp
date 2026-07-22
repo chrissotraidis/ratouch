@@ -43,6 +43,9 @@
 #include "gamedlg.h"
 #include "textbtn.h"
 #include "common/framelimit.h"
+#ifdef IOS_BUILD
+#include "common/ios_controls.h"
+#endif
 
 #ifdef FIXIT_VERSION_3 //	Stalemate games.
 #include "wolstrng.h"
@@ -68,6 +71,12 @@ bool RedrawOptionsMenu;
  *=============================================================================================*/
 void GameOptionsClass::Process(void)
 {
+#ifdef IOS_BUILD
+    // The engine dialog owns input until it returns. Keeping the native tactical
+    // deck active here lets commands and one-shot modifiers leak over a modal.
+    Ratouch_Set_Command_Overlay_Visible(false);
+#endif
+
     static struct
     {
         int ID;         // Button ID to use.
@@ -581,6 +590,10 @@ void GameOptionsClass::Process(void)
     HidPage.Clear();
     Map.Flag_To_Redraw(true);
     Map.Render();
+
+#ifdef IOS_BUILD
+    Ratouch_Set_Command_Overlay_Visible(true);
+#endif
 }
 
 void GameOptionsClass::Adjust_Variables_For_Resolution(void)
