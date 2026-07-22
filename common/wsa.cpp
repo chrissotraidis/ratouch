@@ -117,6 +117,15 @@ typedef struct
 #define SCRUCT_SIZE_ANIMATE_KNOWS_ABOUT    (/*shorts*/ 2 * 7 + /*pointers*/ 4 * 2 + /*buf*/ 13 + /*short*/ 2)
 #define EXTRA_charS_ANIMATE_NOT_KNOW_ABOUT (sizeof(SysAnimHeaderType) - SCRUCT_SIZE_ANIMATE_KNOWS_ABOUT)
 
+unsigned int WSA_Delta_Payload_Size(unsigned int declared_largest_frame_size, unsigned int first_frame_size)
+{
+    unsigned int declared_payload = 0;
+    if (declared_largest_frame_size > SCRUCT_SIZE_ANIMATE_KNOWS_ABOUT) {
+        declared_payload = declared_largest_frame_size - SCRUCT_SIZE_ANIMATE_KNOWS_ABOUT;
+    }
+    return declared_payload > first_frame_size ? declared_payload : first_frame_size;
+}
+
 //
 // Header structure for the file.
 // NOTE:  The 'total_frames' field is used to differentiate between Amiga and IBM
@@ -263,7 +272,8 @@ void* Open_Animation(char const* file_name,
     // NOTE:"THIS IS A BAD THING. SINCE sizeof(SysAnimHeaderType) CHANGED, THE ANIMATE.EXE
     // UTILITY DID NOT KNOW I UPDATED IT, IT ADDS IT TO largest_frame_size BEFORE SAVING
     // IT TO THE FILE.  THIS MEANS I HAVE TO ADD THESE charS ON NOW FOR IT TO WORK.
-    delta_buffer_size = (unsigned int)file_header.largest_frame_size + EXTRA_charS_ANIMATE_NOT_KNOW_ABOUT;
+    delta_buffer_size = WSA_Delta_Payload_Size(file_header.largest_frame_size, frame0_size)
+        + sizeof(SysAnimHeaderType);
     min_buffer_size = target_buffer_size + delta_buffer_size;
     max_buffer_size = min_buffer_size + file_buffer_size;
 

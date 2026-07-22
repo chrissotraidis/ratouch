@@ -84,7 +84,7 @@ RAtouch is an active alpha, not a packaged public release.
 | macOS input | Retina-aware pointer mapping, aligned clicks and software cursor, configurable 25–200% speed, edge scrolling, native window/fullscreen, menus, and clean quit autosave |
 | Data safety | Native folder/file/ISO picker, structural validation, known-file hashes, atomic import, provenance receipt, staged replacement, and save export |
 | Audio and UI | SDL2 game/movie audio, native command deck, Dynamic Type controls, display and volume settings, and bundled license views |
-| Automated proof | 23 tests, arm64 iPad Simulator build, macOS build, and public-repository hygiene verification |
+| Automated proof | 24 tests, arm64 iPad Simulator build, macOS build, and public-repository hygiene verification |
 
 See the exact session evidence and remaining hardware/release gates in [build status](docs/build-status.md).
 

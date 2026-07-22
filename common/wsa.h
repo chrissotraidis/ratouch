@@ -108,6 +108,11 @@ int Get_Animation_Height(void const* handle);
 int Get_Animation_Palette(void const* handle);
 unsigned int Get_Animation_Size(void const* handle);
 
+// WSA files include the legacy animator header in largest_frame_size. The
+// first frame may still be larger than that declared delta payload, so the
+// runtime buffer must cover whichever payload is larger.
+unsigned int WSA_Delta_Payload_Size(unsigned int declared_largest_frame_size, unsigned int first_frame_size);
+
 /***************************************************************************
  * OPEN_ANIMATION -- file name, flags, palette, system allocates buffer.   *
  *                                                                         *

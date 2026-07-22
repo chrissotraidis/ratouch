@@ -1702,21 +1702,25 @@ void Multi_Score_Presentation(void)
     ** Display the background animation
     */
     pseudoseenbuff->Clear();
-    Animate_Frame(anim, *pseudoseenbuff, 1);
-    if (InterpolationTable) {
-        for (int x = 0; x < 256; x++)
-            memset(&InterpolationTable->PaletteInterpolationTable[x][0], x, 256);
-    }
-    Interpolate_2X_Scale(pseudoseenbuff, &SeenBuff, 0, Settings.Video.InterpolationMode);
-    ScorePalette.Set(FADE_PALETTE_FAST, Call_Back);
-
-    int frame = 1;
-    while (frame < Get_Animation_Frame_Count(anim)) {
-        Animate_Frame(anim, *pseudoseenbuff, frame++);
+    if (anim != nullptr) {
+        Animate_Frame(anim, *pseudoseenbuff, 1);
+        if (InterpolationTable) {
+            for (int x = 0; x < 256; x++)
+                memset(&InterpolationTable->PaletteInterpolationTable[x][0], x, 256);
+        }
         Interpolate_2X_Scale(pseudoseenbuff, &SeenBuff, NULL, Settings.Video.InterpolationMode);
-        Call_Back_Delay(2);
+        ScorePalette.Set(FADE_PALETTE_FAST, Call_Back);
+
+        int frame = 1;
+        while (frame < Get_Animation_Frame_Count(anim)) {
+            Animate_Frame(anim, *pseudoseenbuff, frame++);
+            Interpolate_2X_Scale(pseudoseenbuff, &SeenBuff, NULL, Settings.Video.InterpolationMode);
+            Call_Back_Delay(2);
+        }
+        Close_Animation(anim);
+    } else {
+        Interpolate_2X_Scale(pseudoseenbuff, &SeenBuff, NULL, Settings.Video.InterpolationMode);
     }
-    Close_Animation(anim);
 
     Interpolate_2X_Scale(pseudoseenbuff, PseudoSeenBuff, NULL, Settings.Video.InterpolationMode);
 

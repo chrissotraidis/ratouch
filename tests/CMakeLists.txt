@@ -16,6 +16,13 @@ target_include_directories(test_video_geometry PUBLIC ../common)
 add_test(NAME video_geometry COMMAND ${TARGET_SYSTEM_EMULATOR} $<TARGET_FILE:test_video_geometry>)
 add_dependencies(tests test_video_geometry)
 
+add_executable(test_wsa_sizing wsa_sizing.cpp)
+target_include_directories(test_wsa_sizing PUBLIC .. ../common)
+target_compile_definitions(test_wsa_sizing PUBLIC TRUE_FALSE_DEFINED ENGLISH $<$<CONFIG:DEBUG>:_DEBUG> _WINDOWS _CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE WINSOCK_IPX)
+target_link_libraries(test_wsa_sizing PUBLIC common ${STATIC_LIBS})
+add_test(NAME wsa_sizing COMMAND ${TARGET_SYSTEM_EMULATOR} $<TARGET_FILE:test_wsa_sizing>)
+add_dependencies(tests test_wsa_sizing)
+
 add_executable(test_savegame_version savegame_version.cpp)
 target_include_directories(test_savegame_version PUBLIC .. ../common ../redalert)
 target_compile_definitions(test_savegame_version PUBLIC ${VANILLA_DEFS})
