@@ -24,7 +24,9 @@
 
 /* When available, these headers can improve platform endianness detection */
 #ifdef __has_include // C++17, supported as extension to C++11 in clang, GCC 5+, vs2015
-#if __has_include(<endian.h>)
+#if defined(__APPLE__) && __has_include(<machine/endian.h>)
+#include <machine/endian.h> // Apple SDK's legacy endian.h also defines Rect
+#elif __has_include(<endian.h>)
 #include <endian.h> // gnu libc normally provides, linux
 #elif __has_include(<machine/endian.h>)
 #include <machine/endian.h> //open bsd, macos

@@ -40,9 +40,16 @@
 #include "gbuffer.h"
 #include "palette.h"
 #include "video.h"
+#include "video_geometry.h"
+#ifdef IOS_BUILD
+#include "ios_lifecycle.h"
+#endif
 #include "wwkeyboard.h"
 #include "wwmouse.h"
 #include "settings.h"
+#ifdef IOS_BUILD
+#include "ios_controls.h"
+#endif
 #include "debugstring.h"
 
 #include <SDL.h>
@@ -53,6 +60,9 @@ static SDL_Renderer* renderer;
 static SDL_Palette* palette;
 static Uint32 pixel_format;
 static SDL_Rect render_dst;
+static int render_output_w;
+static int render_output_h;
+static int presentation_zoom = 0;
 
 static struct
 {
@@ -119,6 +129,32 @@ Uint32 SettingsPixelFormat()
 
 static void Update_HWCursor();
 
+static VideoPresentationGeometry Current_Presentation_Geometry()
+{
+    int window_w = 0;
+    int window_h = 0;
+    int output_w = 0;
+    int output_h = 0;
+    if (window != nullptr) {
+        SDL_GetWindowSize(window, &window_w, &window_h);
+    }
+    if (renderer != nullptr) {
+        SDL_GetRendererOutputSize(renderer, &output_w, &output_h);
+    }
+    return {
+        window_w,
+        window_h,
+        output_w,
+        output_h,
+        hwcursor.GameW,
+        hwcursor.GameH,
+        render_dst.x,
+        render_dst.y,
+        render_dst.w,
+        render_dst.h,
+    };
+}
+
 static void Update_HWCursor_Settings()
 {
     /*
@@ -126,9 +162,8 @@ static void Update_HWCursor_Settings()
     */
     int win_w, win_h;
     SDL_GetRendererOutputSize(renderer, &win_w, &win_h);
-    hwcursor.ScaleX = win_w / (float)hwcursor.GameW;
-    hwcursor.ScaleY = win_h / (float)hwcursor.GameH;
-
+    render_output_w = win_w;
+    render_output_h = win_h;
     /*
     ** Update screen boxing settings.
     */
@@ -166,6 +201,20 @@ static void Update_HWCursor_Settings()
         render_dst.x = 0;
         render_dst.y = 0;
     }
+
+#ifdef IOS_BUILD
+    static const float zoom_levels[] = {1.0f, 1.5f, 2.0f};
+    const float zoom = zoom_levels[presentation_zoom];
+    const int fitted_w = render_dst.w;
+    const int fitted_h = render_dst.h;
+    render_dst.w = static_cast<int>(fitted_w * zoom);
+    render_dst.h = static_cast<int>(fitted_h * zoom);
+    render_dst.x = (win_w - render_dst.w) / 2;
+    render_dst.y = (win_h - render_dst.h) / 2;
+#endif
+
+    hwcursor.ScaleX = render_dst.w / (float)hwcursor.GameW;
+    hwcursor.ScaleY = render_dst.h / (float)hwcursor.GameH;
 
     /*
     ** Ensure cursor clip is in the desired state.
@@ -216,12 +265,24 @@ SurfaceMonitorClass& AllSurfaces = AllSurfacesDummy; // List of all direct draw 
  *=============================================================================================*/
 bool Set_Video_Mode(int w, int h, int bits_per_pixel)
 {
+#ifdef IOS_BUILD
+    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+#endif
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+#ifdef IOS_BUILD
+    Ratouch_Install_iOS_Lifecycle_Filter();
+#endif
     SDL_ShowCursor(SDL_DISABLE);
 
     int win_w = w;
     int win_h = h;
-    int win_flags = 0;
+    int win_flags = SDL_WINDOW_ALLOW_HIGHDPI;
+#if defined(__APPLE__) && !defined(IOS_BUILD)
+    win_flags |= SDL_WINDOW_RESIZABLE;
+#endif
+#ifdef IOS_BUILD
+    win_flags |= SDL_WINDOW_FULLSCREEN;
+#endif
     Uint32 requested_pixel_format = SettingsPixelFormat();
 
     if (!Settings.Video.Windowed) {
@@ -245,13 +306,25 @@ bool Set_Video_Mode(int w, int h, int bits_per_pixel)
         Settings.Video.WindowHeight = win_h;
     }
 
-    window =
-        SDL_CreateWindow("Vanilla Conquer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, win_w, win_h, win_flags);
+    window = SDL_CreateWindow(
+#ifdef __APPLE__
+        "RAtouch",
+#else
+        "Vanilla Conquer",
+#endif
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        win_w,
+        win_h,
+        win_flags);
     if (window == nullptr) {
         DBG_ERROR("SDL_CreateWindow failed: %s", SDL_GetError());
         Reset_Video_Mode();
         return false;
     }
+#ifdef IOS_BUILD
+    Ratouch_Install_Command_Overlay();
+#endif
 
     DBG_INFO("Created SDL2 %s window in %dx%d", (win_flags ? "fullscreen" : "windowed"), win_w, win_h);
 
@@ -365,6 +438,9 @@ bool Set_Video_Mode(int w, int h, int bits_per_pixel)
 
 void Toggle_Video_Fullscreen()
 {
+    if (window == nullptr) {
+        return;
+    }
     Settings.Video.Windowed = !Settings.Video.Windowed;
 
     if (!Settings.Video.Windowed) {
@@ -405,12 +481,20 @@ void Set_Video_Cursor_Clip(bool clipped)
             */
             if (Settings.Mouse.RawInput) {
                 if (hwcursor.Clip) {
-                    int x, y;
-                    SDL_GetMouseState(&x, &y);
-                    hwcursor.X = x / hwcursor.ScaleX;
-                    hwcursor.Y = y / hwcursor.ScaleY;
+                    int window_x = 0;
+                    int window_y = 0;
+                    int game_x = 0;
+                    int game_y = 0;
+                    SDL_GetMouseState(&window_x, &window_y);
+                    Map_Video_Window_Point(window_x, window_y, game_x, game_y);
+                    hwcursor.X = game_x;
+                    hwcursor.Y = game_y;
                 } else {
-                    SDL_WarpMouseInWindow(window, hwcursor.X * hwcursor.ScaleX, hwcursor.Y * hwcursor.ScaleY);
+                    float window_x = 0.0f;
+                    float window_y = 0.0f;
+                    Video_Game_Point_To_Window(
+                        Current_Presentation_Geometry(), hwcursor.X, hwcursor.Y, window_x, window_y);
+                    SDL_WarpMouseInWindow(window, static_cast<int>(window_x), static_cast<int>(window_y));
                 }
             }
         } else {
@@ -447,16 +531,86 @@ void Move_Video_Mouse(float xrel, float yrel)
 
 void Get_Video_Mouse(int& x, int& y)
 {
-    if (Keyboard->Is_Gamepad_Active() || (Settings.Mouse.RawInput && (hwcursor.Clip || !Settings.Video.Windowed))) {
+    if (Keyboard->Is_Gamepad_Active() || Is_Video_Relative_Mouse_Active()) {
         x = hwcursor.X;
         y = hwcursor.Y;
     } else {
-        float scale_x, scale_y;
-        Get_Video_Scale(scale_x, scale_y);
-        SDL_GetMouseState(&x, &y);
-        x /= scale_x;
-        y /= scale_y;
+        int window_x = 0;
+        int window_y = 0;
+        SDL_GetMouseState(&window_x, &window_y);
+        Map_Video_Window_Point(window_x, window_y, x, y);
     }
+}
+
+bool Is_Video_Relative_Mouse_Active()
+{
+    return Settings.Mouse.RawInput && (hwcursor.Clip || !Settings.Video.Windowed);
+}
+
+void Set_Video_Mouse(int x, int y)
+{
+    hwcursor.X = x;
+    hwcursor.Y = y;
+    if (hwcursor.X >= hwcursor.GameW) {
+        hwcursor.X = hwcursor.GameW - 1;
+    } else if (hwcursor.X < 0) {
+        hwcursor.X = 0;
+    }
+    if (hwcursor.Y >= hwcursor.GameH) {
+        hwcursor.Y = hwcursor.GameH - 1;
+    } else if (hwcursor.Y < 0) {
+        hwcursor.Y = 0;
+    }
+}
+
+bool Is_Video_Window_Point_In_Presentation(float window_x, float window_y)
+{
+    return Video_Window_Point_In_Presentation(Current_Presentation_Geometry(), window_x, window_y);
+}
+
+void Map_Video_Window_Point(float window_x, float window_y, int& x, int& y)
+{
+    float game_x = 0.0f;
+    float game_y = 0.0f;
+    Video_Window_Point_To_Game(Current_Presentation_Geometry(), window_x, window_y, game_x, game_y);
+    x = static_cast<int>(game_x);
+    y = static_cast<int>(game_y);
+}
+
+void Map_Video_Window_Delta(float window_dx, float window_dy, float& x, float& y)
+{
+    Video_Window_Delta_To_Game(Current_Presentation_Geometry(), window_dx, window_dy, x, y);
+}
+
+void Map_Video_Point(float normalized_x, float normalized_y, int& x, int& y)
+{
+    int window_w = 0;
+    int window_h = 0;
+    SDL_GetWindowSize(window, &window_w, &window_h);
+    Map_Video_Window_Point(normalized_x * window_w, normalized_y * window_h, x, y);
+}
+
+void Adjust_Video_Zoom(int steps)
+{
+#ifdef IOS_BUILD
+    presentation_zoom += steps;
+    if (presentation_zoom < 0) {
+        presentation_zoom = 0;
+    } else if (presentation_zoom > 2) {
+        presentation_zoom = 2;
+    }
+    Update_HWCursor_Settings();
+#else
+    (void)steps;
+#endif
+}
+
+void Reset_Video_Zoom()
+{
+#ifdef IOS_BUILD
+    presentation_zoom = 0;
+    Update_HWCursor_Settings();
+#endif
 }
 
 /***********************************************************************************************
@@ -729,6 +883,8 @@ public:
         if (flags & GBC_VISIBLE) {
             windowSurface = SDL_CreateRGBSurfaceWithFormat(0, w, h, SDL_BITSPERPIXEL(pixel_format), pixel_format);
             texture = SDL_CreateTexture(renderer, windowSurface->format->format, SDL_TEXTUREACCESS_STREAMING, w, h);
+            SDL_SetTextureScaleMode(
+                texture, Settings.Video.Scaler == "linear" ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
             frontSurface = this;
         }
     }
@@ -794,10 +950,25 @@ public:
         SDL_FillRect(surface, &rectSDL, color);
     }
 
+    void SetScaleFilter(bool smooth)
+    {
+        if (texture != nullptr) {
+            SDL_SetTextureScaleMode(texture, smooth ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+        }
+    }
+
     void RenderSurface()
     {
         void* pixels;
         int pitch;
+
+        int output_w = 0;
+        int output_h = 0;
+        if (SDL_GetRendererOutputSize(renderer, &output_w, &output_h) == 0
+            && output_w > 0 && output_h > 0
+            && (output_w != render_output_w || output_h != render_output_h || render_dst.w <= 0 || render_dst.h <= 0)) {
+            Update_HWCursor_Settings();
+        }
 
         SDL_BlitSurface(surface, NULL, windowSurface, NULL);
 
@@ -850,8 +1021,31 @@ private:
     GBC_Enum flags;
 };
 
+void Set_Video_Scale_Filter(bool smooth)
+{
+    Settings.Video.Scaler = smooth ? "linear" : "nearest";
+    SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, Settings.Video.Scaler.c_str(), SDL_HINT_OVERRIDE);
+    if (frontSurface != nullptr) {
+        frontSurface->SetScaleFilter(smooth);
+    }
+}
+
+void Set_Video_Aspect_Mode(bool fill)
+{
+    Settings.Video.Boxing = !fill;
+    Settings.Video.BoxingAspectRatio = "16:10";
+    if (renderer != nullptr && window != nullptr) {
+        Update_HWCursor_Settings();
+    }
+}
+
 void Video_Render_Frame()
 {
+#ifdef IOS_BUILD
+    if (Ratouch_iOS_Should_Pause()) {
+        return;
+    }
+#endif
     if (frontSurface) {
         frontSurface->RenderSurface();
     }

@@ -16,14 +16,31 @@
 #include "macros.h"
 #include "wwkeyboard_sdl2.h"
 #include "video.h"
+#include "video_geometry.h"
 #include "sdl_keymap.h"
 #include "settings.h"
+#include "ratouch_settings.h"
+#ifdef IOS_BUILD
+#include "ios_controls.h"
+#include "ios_lifecycle.h"
+extern bool InMovie;
+#endif
 #include <cmath>
 #include <SDL.h>
 
 void Focus_Loss();
 void Focus_Restore();
 void Process_Network();
+#ifdef RATOUCH_MACOS_BUILD
+void Ratouch_Mac_Prepare_Quit();
+#endif
+
+WWKeyboardClassSDL2::WWKeyboardClassSDL2()
+{
+#ifdef IOS_BUILD
+    Refresh_Touch_Preferences();
+#endif
+}
 
 WWKeyboardClassSDL2::~WWKeyboardClassSDL2()
 {
@@ -31,15 +48,28 @@ WWKeyboardClassSDL2::~WWKeyboardClassSDL2()
 
 void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
 {
+#ifdef IOS_BUILD
+    Ratouch_iOS_Process_Pause();
+#endif
 #ifdef NETWORKING
     Process_Network();
 #endif
     SDL_Event event;
 
+#ifdef IOS_BUILD
+    TouchScroll.Clear();
+    MouseMovieInput.Begin_Poll(InMovie);
+    TouchMovieInput.Begin_Poll(InMovie);
+    Handle_Touch_Actions(Touch.Poll(SDL_GetTicks64()));
+#endif
+
     while (!Is_Buffer_Full() && SDL_PollEvent(&event)) {
         unsigned short key;
         switch (event.type) {
         case SDL_QUIT:
+#ifdef RATOUCH_MACOS_BUILD
+            Ratouch_Mac_Prepare_Quit();
+#endif
             exit(0);
             break;
         case SDL_KEYDOWN:
@@ -53,38 +83,82 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
             }
             break;
         case SDL_MOUSEMOTION:
-            Move_Video_Mouse(static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel));
+#ifdef IOS_BUILD
+            if (event.motion.which == SDL_TOUCH_MOUSEID) {
+                break;
+            }
+            PointerOwner.Observe_Pointer();
+#endif
+            {
+                float game_xrel = 0.0f;
+                float game_yrel = 0.0f;
+                Map_Video_Window_Delta(
+                    static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel), game_xrel, game_yrel);
+                Move_Video_Mouse(game_xrel, game_yrel);
+            }
             break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP: {
+#ifdef IOS_BUILD
+            if (event.button.which == SDL_TOUCH_MOUSEID) {
+                break;
+            }
+            PointerOwner.Observe_Pointer();
+
+            const WWMovieInputAction movie_action = MouseMovieInput.Handle(
+                InMovie,
+                event.type == SDL_MOUSEBUTTONDOWN ? WWMovieInputPhase::Down : WWMovieInputPhase::Up);
+            if (movie_action != WWMovieInputAction::Pass) {
+                if (movie_action == WWMovieInputAction::Skip) {
+                    Put_Key_Message(VK_ESCAPE);
+                }
+                break;
+            }
+#endif
             int x, y;
+            int button_index = 0;
 
             switch (event.button.button) {
             case SDL_BUTTON_LEFT:
             default:
                 key = VK_LBUTTON;
+                button_index = 0;
                 break;
             case SDL_BUTTON_RIGHT:
                 key = VK_RBUTTON;
+                button_index = 1;
                 break;
             case SDL_BUTTON_MIDDLE:
                 key = VK_MBUTTON;
+                button_index = 2;
                 break;
             }
 
-            if (Settings.Mouse.RawInput || Is_Gamepad_Active()) {
+            bool inside_presentation = true;
+            if (Is_Gamepad_Active() || Is_Video_Relative_Mouse_Active()) {
                 Get_Video_Mouse(x, y);
             } else {
-                float scale_x = 1.0f, scale_y = 1.0f;
-                Get_Video_Scale(scale_x, scale_y);
-                x = event.button.x / scale_x;
-                y = event.button.y / scale_y;
+                inside_presentation = Is_Video_Window_Point_In_Presentation(event.button.x, event.button.y);
+                Map_Video_Window_Point(event.button.x, event.button.y, x, y);
             }
 
-            Put_Mouse_Message(key, x, y, event.type == SDL_MOUSEBUTTONDOWN ? false : true);
+            const bool released = event.type == SDL_MOUSEBUTTONUP;
+            if (!Video_Presentation_Button_Event(
+                    !released, inside_presentation, MouseButtonAccepted[button_index])) {
+                break;
+            }
+
+            Put_Mouse_Message(key, x, y, released);
         } break;
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
+            case SDL_WINDOWEVENT_RESIZED:
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
+                if (Settings.Video.Windowed) {
+                    Settings.Video.WindowWidth = event.window.data1;
+                    Settings.Video.WindowHeight = event.window.data2;
+                }
+                break;
             case SDL_WINDOWEVENT_EXPOSED:
             case SDL_WINDOWEVENT_RESTORED:
             case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -125,8 +199,42 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
         case SDL_CONTROLLERBUTTONUP:
             Handle_Controller_Button_Event(event.cbutton);
             break;
+#ifdef IOS_BUILD
+        case SDL_FINGERDOWN:
+        case SDL_FINGERMOTION:
+        case SDL_FINGERUP:
+            Handle_Touch_Event(event.tfinger, event.type);
+            break;
+        case SDL_APP_WILLENTERBACKGROUND:
+        case SDL_APP_DIDENTERBACKGROUND:
+            Handle_Touch_Actions(Touch.Cancel_All());
+            Focus_Loss();
+            break;
+        case SDL_APP_WILLENTERFOREGROUND:
+        case SDL_APP_DIDENTERFOREGROUND:
+            Focus_Restore();
+            break;
+#endif
+#if defined(IOS_BUILD) || defined(RATOUCH_MACOS_BUILD)
+        case SDL_USEREVENT:
+            if (event.user.code == RATOUCH_APP_SETTING_CHANGED) {
+                Ratouch_Apple_Apply_App_Setting(static_cast<int>(reinterpret_cast<intptr_t>(event.user.data1)),
+                                                static_cast<int>(reinterpret_cast<intptr_t>(event.user.data2)));
+                break;
+            }
+#ifdef IOS_BUILD
+            if (event.user.code == RATOUCH_IOS_TOUCH_PREFERENCES_CHANGED) {
+                Refresh_Touch_Preferences();
+            }
+#endif
+            break;
+#endif
         }
     }
+#ifdef IOS_BUILD
+    MouseMovieInput.End_Poll();
+    TouchMovieInput.End_Poll();
+#endif
     if (Is_Gamepad_Active()) {
         Process_Controller_Axis_Motion();
     }
@@ -305,13 +413,209 @@ void WWKeyboardClassSDL2::Handle_Controller_Button_Event(const SDL_ControllerBut
 
 bool WWKeyboardClassSDL2::Is_Analog_Scroll_Active()
 {
+#ifdef IOS_BUILD
+    float dx = 0.0f;
+    float dy = 0.0f;
+    return AnalogScrollActive || TouchScroll.Peek(dx, dy);
+#else
     return AnalogScrollActive;
+#endif
 }
 
 unsigned char WWKeyboardClassSDL2::Get_Scroll_Direction()
 {
+#ifdef IOS_BUILD
+    float dx = 0.0f;
+    float dy = 0.0f;
+    return TouchScroll.Peek(dx, dy) ? Touch_Scroll_Direction(dx, dy) : ScrollDirection;
+#else
     return ScrollDirection;
+#endif
 }
+
+bool WWKeyboardClassSDL2::Consume_Analog_Scroll(unsigned char& direction, int& pixel_distance)
+{
+#ifdef IOS_BUILD
+    float dx = 0.0f;
+    float dy = 0.0f;
+    if (TouchScroll.Consume(dx, dy)) {
+        direction = Touch_Scroll_Direction(dx, dy);
+        pixel_distance = std::max(1, static_cast<int>(std::lround(std::sqrt(dx * dx + dy * dy))));
+        return direction != SDIR_NONE;
+    }
+#endif
+    if (AnalogScrollActive) {
+        direction = ScrollDirection;
+        pixel_distance = 0;
+        return true;
+    }
+    return false;
+}
+
+bool WWKeyboardClassSDL2::Is_Mouse_Edge_Scroll_Allowed()
+{
+#ifdef IOS_BUILD
+    return !PointerOwner.Touch_Owns_Cursor();
+#else
+    return true;
+#endif
+}
+
+#ifdef IOS_BUILD
+ScrollDirType WWKeyboardClassSDL2::Touch_Scroll_Direction(float dx, float dy) const
+{
+    const float absolute_x = std::fabs(dx);
+    const float absolute_y = std::fabs(dy);
+    const bool horizontal = absolute_x > 0.01f && absolute_x >= absolute_y * 0.4142f;
+    const bool vertical = absolute_y > 0.01f && absolute_y >= absolute_x * 0.4142f;
+    const bool east = horizontal && dx < 0.0f;
+    const bool west = horizontal && dx > 0.0f;
+    const bool south = vertical && dy < 0.0f;
+    const bool north = vertical && dy > 0.0f;
+
+    if (east && north) {
+        return SDIR_NE;
+    }
+    if (east && south) {
+        return SDIR_SE;
+    }
+    if (west && north) {
+        return SDIR_NW;
+    }
+    if (west && south) {
+        return SDIR_SW;
+    }
+    if (east) {
+        return SDIR_E;
+    }
+    if (west) {
+        return SDIR_W;
+    }
+    if (north) {
+        return SDIR_N;
+    }
+    if (south) {
+        return SDIR_S;
+    }
+    return SDIR_NONE;
+}
+
+void WWKeyboardClassSDL2::Refresh_Touch_Preferences()
+{
+    WWTouchState::Config config;
+    config.LongPressMilliseconds = Ratouch_iOS_Long_Press_Milliseconds();
+    config.DragThreshold = Ratouch_iOS_Drag_Threshold();
+    Touch.Set_Config(config);
+    TouchPanInverted = Ratouch_iOS_Invert_Pan();
+}
+
+void WWKeyboardClassSDL2::Handle_Touch_Actions(const std::vector<WWTouchAction>& actions)
+{
+    for (const WWTouchAction& action : actions) {
+        int x = 0;
+        int y = 0;
+        const bool inside_presentation = Is_Video_Window_Point_In_Presentation(action.X, action.Y);
+        Map_Video_Window_Point(action.X, action.Y, x, y);
+        switch (action.Type) {
+        case WWTouchActionType::CursorMove:
+            Set_Video_Mouse(x, y);
+            break;
+        case WWTouchActionType::LeftDown:
+            if (!Video_Presentation_Button_Event(true, inside_presentation, TouchLeftAccepted)) {
+                break;
+            }
+            Set_Video_Mouse(x, y);
+            Put_Mouse_Message(VK_LBUTTON, x, y, false);
+            break;
+        case WWTouchActionType::LeftUp:
+            if (!Video_Presentation_Button_Event(false, inside_presentation, TouchLeftAccepted)) {
+                break;
+            }
+            Set_Video_Mouse(x, y);
+            Put_Mouse_Message(VK_LBUTTON, x, y, true);
+            break;
+        case WWTouchActionType::RightDown:
+            if (!Video_Presentation_Button_Event(true, inside_presentation, TouchRightAccepted)) {
+                break;
+            }
+            Ratouch_iOS_Confirm_Long_Press();
+            Set_Video_Mouse(x, y);
+            Put_Mouse_Message(VK_RBUTTON, x, y, false);
+            break;
+        case WWTouchActionType::RightUp:
+            if (!Video_Presentation_Button_Event(false, inside_presentation, TouchRightAccepted)) {
+                break;
+            }
+            Set_Video_Mouse(x, y);
+            Put_Mouse_Message(VK_RBUTTON, x, y, true);
+            break;
+        case WWTouchActionType::PanMove: {
+            float delta_x = 0.0f;
+            float delta_y = 0.0f;
+            Map_Video_Window_Delta(action.DeltaX, action.DeltaY, delta_x, delta_y);
+            delta_x *= TouchPanInverted ? -1.0f : 1.0f;
+            delta_y *= TouchPanInverted ? -1.0f : 1.0f;
+            TouchScroll.Add(delta_x, delta_y);
+        } break;
+        case WWTouchActionType::PanStart:
+            TouchScroll.Clear();
+            break;
+        case WWTouchActionType::PanEnd:
+            break;
+        case WWTouchActionType::ZoomStep:
+            Adjust_Video_Zoom(action.Steps);
+            break;
+        case WWTouchActionType::ZoomReset:
+            Reset_Video_Zoom();
+            break;
+        }
+    }
+}
+
+void WWKeyboardClassSDL2::Handle_Touch_Event(const SDL_TouchFingerEvent& touch, uint32_t type)
+{
+    // Direct touch owns the virtual cursor until a real mouse or trackpad event
+    // arrives. This keeps Red Alert's legacy mouse-edge scrolling from fighting
+    // one-finger selection while preserving edge scroll for pointer users.
+    int width = 1;
+    int height = 1;
+    SDL_Window* window = SDL_GetKeyboardFocus();
+    if (window == nullptr) {
+        window = SDL_GetMouseFocus();
+    }
+    if (window != nullptr) {
+        SDL_GetWindowSize(window, &width, &height);
+    }
+    const float x = touch.x * width;
+    const float y = touch.y * height;
+    PointerOwner.Observe_Touch();
+
+    WWMovieInputPhase movie_phase = WWMovieInputPhase::Motion;
+    if (type == SDL_FINGERDOWN) {
+        movie_phase = WWMovieInputPhase::Down;
+    } else if (type == SDL_FINGERUP) {
+        movie_phase = WWMovieInputPhase::Up;
+    }
+    const WWMovieInputAction movie_action = TouchMovieInput.Handle(InMovie, movie_phase);
+    if (movie_action != WWMovieInputAction::Pass) {
+        Touch.Cancel_All();
+        if (movie_action == WWMovieInputAction::Skip) {
+            Put_Key_Message(VK_ESCAPE);
+        }
+        return;
+    }
+
+    std::vector<WWTouchAction> actions;
+    if (type == SDL_FINGERDOWN) {
+        actions = Touch.Finger_Down(touch.fingerId, x, y, touch.timestamp);
+    } else if (type == SDL_FINGERMOTION) {
+        actions = Touch.Finger_Motion(touch.fingerId, x, y, touch.timestamp);
+    } else {
+        actions = Touch.Finger_Up(touch.fingerId, x, y, touch.timestamp);
+    }
+    Handle_Touch_Actions(actions);
+}
+#endif
 
 KeyASCIIType WWKeyboardClassSDL2::To_ASCII(unsigned short key)
 {

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">RAtouch gesture map</title>
+  <desc id="desc">One finger taps, drags, and long presses. Two fingers pan, pinch, and double-tap to reset. The command deck restores essential keyboard commands, one-shot modifiers, and control groups.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111317"/><stop offset="1" stop-color="#070809"/></linearGradient>
+    <style>.head{font:700 34px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#f4ead7}.label{font:700 22px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#f4ead7}.body{font:400 17px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#b9b5ae}.mono{font:700 14px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:1.2px;fill:#ff4a3d}</style>
+  </defs>
+  <rect width="1200" height="620" rx="30" fill="url(#bg)"/><path d="M0 90H1200M400 90V620M800 90V620" stroke="#2b2d31"/><text x="42" y="58" class="head">Touch grammar</text>
+  <g transform="translate(42 122)"><text class="mono">ONE FINGER</text><circle cx="116" cy="118" r="52" fill="none" stroke="#ff3b30" stroke-width="3"/><circle cx="116" cy="118" r="18" fill="#ff3b30"/><path d="M116 178v62m0 0-22-24m22 24 22-24" fill="none" stroke="#f4ead7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><text x="0" y="292" class="label">Tap to act</text><text x="0" y="326" class="body">Select, order, build, or press</text><text x="0" y="354" class="body">the original interface.</text><text x="0" y="402" class="label">Drag to select</text><text x="0" y="436" class="body">Balanced starts at 8 pt; tighter</text><text x="0" y="464" class="body">and relaxed presets use 6 / 12 pt.</text></g>
+  <g transform="translate(442 122)"><text class="mono">TWO FINGERS</text><circle cx="89" cy="118" r="31" fill="none" stroke="#ff3b30" stroke-width="3"/><circle cx="177" cy="118" r="31" fill="none" stroke="#ff3b30" stroke-width="3"/><path d="M68 190l-28 28m0 0h31m-31 0v-31M198 190l28 28m0 0h-31m31 0v-31" fill="none" stroke="#f4ead7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><text x="0" y="292" class="label">Drag to pan</text><text x="0" y="326" class="body">The map follows the gesture;</text><text x="0" y="354" class="body">touch edge-scroll stays off.</text><text x="0" y="402" class="label">Pinch to zoom</text><text x="0" y="436" class="body">Fit, 1.5×, and 2×; double</text><text x="0" y="464" class="body">two-finger tap returns to fit.</text></g>
+  <g transform="translate(842 122)">
+    <text class="mono">KEYBOARD-FREE</text>
+    <rect x="0" y="54" width="308" height="244" rx="18" fill="#181a1e" stroke="#ff3b30"/>
+    <g fill="#292c31" stroke="#73403d">
+      <rect x="12" y="66" width="138" height="28" rx="7"/><rect x="158" y="66" width="138" height="28" rx="7"/>
+      <rect x="12" y="98" width="138" height="28" rx="7"/><rect x="158" y="98" width="138" height="28" rx="7"/>
+      <rect x="12" y="130" width="138" height="28" rx="7"/><rect x="158" y="130" width="138" height="28" rx="7"/>
+      <rect x="12" y="162" width="138" height="28" rx="7"/><rect x="158" y="162" width="138" height="28" rx="7"/>
+      <rect x="12" y="194" width="138" height="28" rx="7"/><rect x="158" y="194" width="138" height="28" rx="7"/>
+      <rect x="12" y="226" width="138" height="28" rx="7"/><rect x="158" y="226" width="138" height="28" rx="7"/>
+      <rect x="12" y="258" width="284" height="28" rx="7"/>
+    </g>
+    <g class="body" text-anchor="middle" style="font-size:12px">
+      <text x="81" y="85">Stop</text><text x="227" y="85">Guard</text>
+      <text x="81" y="117">Scatter</text><text x="227" y="117">Next</text>
+      <text x="81" y="149">Base</text><text x="227" y="149">View</text>
+      <text x="81" y="181">Attack+</text><text x="227" y="181">Move+</text>
+      <text x="81" y="213">Add+</text><text x="227" y="213">Queue+</text>
+      <text x="81" y="245">Groups</text><text x="227" y="245">Controls</text>
+      <text x="154" y="277">Move left / right</text>
+    </g>
+    <text x="0" y="326" class="label">Command deck</text>
+    <text x="0" y="358" class="body">Original commands and one-shot</text>
+    <text x="0" y="384" class="body">modifiers, then it gets out of the way.</text>
+    <text x="0" y="422" class="label">Groups and context</text>
+    <text x="0" y="452" class="body">Recall or assign slots 1–0; hold</text>
+    <text x="0" y="478" class="body">for right-click with optional haptic.</text>
+  </g>
+</svg>

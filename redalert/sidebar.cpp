@@ -76,6 +76,9 @@
 
 #include "function.h"
 #include "factory.h"
+#ifdef IOS_BUILD
+#include "common/ios_controls.h"
+#endif
 
 void* SidebarClass::SidebarShape = NULL;
 void* SidebarClass::SidebarMiddleShape = NULL;
@@ -978,6 +981,10 @@ bool SidebarClass::Activate(int control)
     **	be done to change it.
     */
     if (IsSidebarActive != old) {
+
+#ifdef IOS_BUILD
+        Ratouch_Set_iOS_Sidebar_Visible(IsSidebarActive);
+#endif
 
         /*
         **	If the sidebar is activated but was on the right side of the screen, then

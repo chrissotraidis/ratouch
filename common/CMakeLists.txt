@@ -47,6 +47,7 @@ set(COMMON_SRC
     ini.cpp
     int.cpp
     internet.cpp
+    ios_modifier.cpp
     irandom.cpp
     keybuff.cpp
     keyframe.cpp
@@ -73,6 +74,8 @@ set(COMMON_SRC
     random.cpp
     rawfile.cpp
     readline.cpp
+    ratouch_gameplay.cpp
+    ratouch_settings.cpp
     rect.cpp
     rgb.cpp
     rndstraw.cpp
@@ -134,6 +137,8 @@ set(COMMONV_SRC
 if(DSOUND)
     list(APPEND COMMONV_SRC soundio.cpp vqaaudio_dsound.cpp)
     list(APPEND VANILLA_LIBS dsound)
+elseif(SDL_AUDIO)
+    list(APPEND COMMONV_SRC soundio_common.cpp soundio_sdl2.cpp vqaaudio_sdl2.cpp)
 elseif(OPENAL)
     list(APPEND COMMONV_SRC soundio_common.cpp soundio_openal.cpp vqaaudio_openal.cpp)
 else()
@@ -144,7 +149,10 @@ if(DDRAW)
     list(APPEND COMMONV_SRC video_ddraw.cpp wwkeyboard_win32.cpp)
     list(APPEND VANILLA_LIBS ddraw)
 elseif(SDL2)
-    list(APPEND COMMONV_SRC video_sdl2.cpp wwkeyboard_sdl2.cpp)
+    list(APPEND COMMONV_SRC video_geometry.cpp video_sdl2.cpp wwkeyboard_sdl2.cpp wwtouch.cpp)
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        list(APPEND COMMONV_SRC ios_lifecycle.cpp)
+    endif()
 elseif(SDL1)
     list(APPEND COMMONV_SRC video_sdl1.cpp wwkeyboard_sdl1.cpp)
 else()
@@ -199,6 +207,9 @@ if(BUILD_VANILLATD OR BUILD_VANILLARA OR BUILD_TESTS)
     endif()
     if(OPENAL)
         target_compile_definitions(commonv PUBLIC OPENAL_BUILD)
+    endif()
+    if(SDL_AUDIO)
+        target_compile_definitions(commonv PUBLIC SDL_AUDIO_BUILD)
     endif()
     if(SDL2)
         target_compile_definitions(commonv PUBLIC SDL_BUILD SDL2_BUILD NEW_VIDEO_BUILD)

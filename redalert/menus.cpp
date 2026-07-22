@@ -758,6 +758,14 @@ int Main_Menu(unsigned int)
             Show_Mouse();
 
             Set_Logic_Page(SeenBuff);
+            // Present the newly drawn menu before accepting input. The normal
+            // frame limiter is below input processing, which can otherwise leave
+            // the final movie frame visible over an already interactive menu.
+            Frame_Limiter(FL_FORCE_RENDER);
+
+            // Do not let input received while presenting the first menu frame
+            // activate the menu that has only just become visible.
+            Keyboard->Clear();
             display = false;
         } else {
             if (RunningAsDLL) { // PG

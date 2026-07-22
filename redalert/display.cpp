@@ -89,6 +89,9 @@
 #include "vortex.h"
 #include "xpipe.h"
 #include "common/fading.h"
+#ifdef IOS_BUILD
+#include "common/ios_controls.h"
+#endif
 
 /*
 **	These layer control elements are used to group the displayable objects
@@ -3466,6 +3469,9 @@ void DisplayClass::Mouse_Right_Press(void)
 
     // If it breaks... call 228.
     Set_Default_Mouse(MOUSE_NORMAL, Map.IsSmall);
+#ifdef IOS_BUILD
+    Ratouch_iOS_Cancel_One_Shot_Modifier();
+#endif
 }
 
 /***********************************************************************************************
@@ -4076,6 +4082,9 @@ void DisplayClass::Mouse_Left_Release(CELL cell, int x, int y, ObjectClass* obje
             IsTentative = false;
         }
     }
+#ifdef IOS_BUILD
+    Ratouch_iOS_Consume_One_Shot_Modifier();
+#endif
 }
 
 /***********************************************************************************************

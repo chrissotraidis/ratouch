@@ -2,3 +2,4 @@
 /CMakeUserPresets.json
 /.cache
 /.vscode
+.DS_Store

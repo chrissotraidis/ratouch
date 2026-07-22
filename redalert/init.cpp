@@ -72,6 +72,9 @@
 #include "ramfile.h"
 #include "common/vqaconfig.h"
 #include "common/winasm.h"
+#ifdef IOS_BUILD
+#include "common/ios_controls.h"
+#endif
 #include "intro.h"
 
 RemapControlType SidebarScheme;
@@ -430,6 +433,9 @@ bool Init_Game(int, char*[])
  *=============================================================================================*/
 bool Select_Game(bool fade)
 {
+#ifdef IOS_BUILD
+    Ratouch_Set_Command_Overlay_Visible(false);
+#endif
     //	Enums in Select_Game() must match order of buttons in Main_Menu().
 #ifdef FIXIT_VERSION_3
     enum
@@ -1183,6 +1189,9 @@ bool Select_Game(bool fade)
     Call_Back();
     Map.Render();
 
+#ifdef IOS_BUILD
+    Ratouch_Set_Command_Overlay_Visible(true);
+#endif
     return (true);
 }
 
@@ -2340,13 +2349,15 @@ static void Init_Bootstrap_Mixfiles(void)
  *=============================================================================================*/
 static void Init_Secondary_Mixfiles(void)
 {
-    MainMix = new MFCD("MAIN.MIX", &FastKey);
+    if (MainMix == NULL)
+        MainMix = new MFCD("MAIN.MIX", &FastKey);
     assert(MainMix != NULL);
 
     /*
     **	Inform the file system of the various MIX files.
     */
-    ConquerMix = new MFCD("CONQUER.MIX", &FastKey); // Cached.
+    if (ConquerMix == NULL)
+        ConquerMix = new MFCD("CONQUER.MIX", &FastKey); // Cached.
                                                     //	new MFCD("TRANSIT.MIX", &FastKey);
 
     if (GeneralMix == NULL)
@@ -2426,6 +2437,17 @@ static void Bootstrap(void)
     **	process further initialization.
     */
     Init_Bootstrap_Mixfiles();
+
+    /*
+    ** Register base-disc containers before retrieving bootstrap text and palettes. Modern
+    ** installs commonly keep MAIN.MIX in an allied/ or soviet/ folder rather than as loose files.
+    */
+    if (MainMix == NULL && CCFileClass("MAIN.MIX").Is_Available()) {
+        MainMix = new MFCD("MAIN.MIX", &FastKey);
+    }
+    if (MainMix != NULL && ConquerMix == NULL && CCFileClass("CONQUER.MIX").Is_Available()) {
+        ConquerMix = new MFCD("CONQUER.MIX", &FastKey);
+    }
 
     /*
     **	Initialize the resident font pointers.

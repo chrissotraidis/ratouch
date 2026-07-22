@@ -38,7 +38,53 @@
 #include "language.h"
 #include "settings.h"
 #include "common/paths.h"
+#if defined(RATOUCH_MACOS_BUILD) || defined(IOS_BUILD)
+#include "common/ratouch_gameplay.h"
+#include "common/ratouch_settings.h"
+#endif
 #include "common/utfargs.h"
+#ifdef IOS_BUILD
+#include "common/ios_lifecycle.h"
+#endif
+
+#ifdef RATOUCH_MACOS_BUILD
+extern bool Ratouch_Ensure_Mac_Game_Data();
+extern void Ratouch_Install_Mac_Shell();
+
+int Ratouch_Mac_Pointer_Sensitivity()
+{
+    return Settings.Mouse.Sensitivity;
+}
+
+void Ratouch_Mac_Set_Pointer_Sensitivity(int sensitivity)
+{
+    if (sensitivity < 25) {
+        sensitivity = 25;
+    } else if (sensitivity > 200) {
+        sensitivity = 200;
+    }
+    Settings.Mouse.Sensitivity = sensitivity;
+
+    CCFileClass file(CONFIG_FILE_NAME);
+    INIClass ini;
+    ini.Load(file);
+    Settings.Save(ini);
+    ini.Save(file);
+}
+
+void Ratouch_Mac_Prepare_Quit()
+{
+    static bool prepared = false;
+    if (prepared) {
+        return;
+    }
+    prepared = true;
+    if (Ratouch_Should_Autosave(GameActive)) {
+        Save_Game(999, "macOS Autosave");
+    }
+    Prog_End(nullptr, false);
+}
+#endif
 
 extern char RedAlertINI[_MAX_PATH];
 
@@ -47,8 +93,84 @@ void Print_Error_End_Exit(char* string);
 void Print_Error_Exit(char* string);
 
 #ifdef SDL_BUILD
+#ifndef IOS_BUILD
 #define SDL_MAIN_HANDLED
+#endif
 #include <SDL.h>
+#endif
+
+#if defined(RATOUCH_MACOS_BUILD) || defined(IOS_BUILD)
+namespace
+{
+int Ratouch_Volume_Percent(fixed volume)
+{
+    const int percent = volume * 100;
+    return percent < 0 ? 0 : (percent > 100 ? 100 : percent);
+}
+
+void Ratouch_Save_Video_Settings()
+{
+    CCFileClass file(CONFIG_FILE_NAME);
+    INIClass ini;
+    if (file.Is_Available()) {
+        ini.Load(file);
+    }
+    Settings.Save(ini);
+    ini.Save(file);
+}
+}
+
+int Ratouch_Apple_App_Setting(int setting)
+{
+    switch (setting) {
+    case RATOUCH_SETTING_SCALE_FILTER:
+        return Settings.Video.Scaler == "linear" ? 1 : 0;
+    case RATOUCH_SETTING_ASPECT_MODE:
+        return Settings.Video.Boxing ? 0 : 1;
+    case RATOUCH_SETTING_MUSIC_VOLUME:
+        return Ratouch_Volume_Percent(Options.ScoreVolume);
+    case RATOUCH_SETTING_SOUND_VOLUME:
+        return Ratouch_Volume_Percent(Options.Volume);
+    default:
+        return 0;
+    }
+}
+
+void Ratouch_Apple_Request_App_Setting(int setting, int value)
+{
+    SDL_Event event = {};
+    event.type = SDL_USEREVENT;
+    event.user.code = RATOUCH_APP_SETTING_CHANGED;
+    event.user.data1 = reinterpret_cast<void*>(static_cast<intptr_t>(setting));
+    event.user.data2 = reinterpret_cast<void*>(static_cast<intptr_t>(Ratouch_Normalize_App_Setting(setting, value)));
+    SDL_PushEvent(&event);
+}
+
+void Ratouch_Apple_Apply_App_Setting(int setting, int value)
+{
+    if (setting < RATOUCH_SETTING_SCALE_FILTER || setting > RATOUCH_SETTING_SOUND_VOLUME) {
+        return;
+    }
+    value = Ratouch_Normalize_App_Setting(setting, value);
+    switch (setting) {
+    case RATOUCH_SETTING_SCALE_FILTER:
+        Set_Video_Scale_Filter(value != 0);
+        Ratouch_Save_Video_Settings();
+        break;
+    case RATOUCH_SETTING_ASPECT_MODE:
+        Set_Video_Aspect_Mode(value != 0);
+        Ratouch_Save_Video_Settings();
+        break;
+    case RATOUCH_SETTING_MUSIC_VOLUME:
+        Options.Set_Score_Volume(fixed(value, 100), false);
+        Options.Save_Settings();
+        break;
+    case RATOUCH_SETTING_SOUND_VOLUME:
+        Options.Set_Sound_Volume(fixed(value, 100), false);
+        Options.Save_Settings();
+        break;
+    }
+}
 #endif
 
 #ifdef _WIN32
@@ -66,15 +188,44 @@ bool VideoBackBufferAllowed = true;
 
 const char* Game_Registry_Key();
 
-#if (ENGLISH)
+#ifdef IOS_BUILD
+static void Ratouch_Autosave_On_Background()
+{
+    if (Ratouch_Should_Autosave(GameActive)) {
+        Save_Game(999, "iOS Autosave");
+    }
+}
+#endif
+
+static void Prime_Local_Disc_Path()
+{
+    static const char* base_discs[] = {"allied", "soviet"};
+    const std::string roots[] = {Paths.User_Path(), Paths.Data_Path(), Paths.Program_Path()};
+
+    for (const char* disc : base_discs) {
+        for (const std::string& root : roots) {
+            std::string path = Paths.Concatenate_Paths(root.c_str(), disc);
+            std::string main_mix = Paths.Concatenate_Paths(path.c_str(), "MAIN.MIX");
+            if (RawFileClass(main_mix.c_str()).Is_Available()) {
+                path += PathsClass::SEP;
+                CDFileClass::Add_Search_Drive(path.c_str());
+                return;
+            }
+        }
+    }
+}
+
+#if defined(__APPLE__)
+#define WINDOW_NAME "RAtouch"
+#elif (ENGLISH)
 #define WINDOW_NAME "Red Alert"
 #endif
 
-#if (FRENCH)
+#if !defined(__APPLE__) && (FRENCH)
 #define WINDOW_NAME "Alerte Rouge"
 #endif
 
-#if (GERMAN)
+#if !defined(__APPLE__) && (GERMAN)
 #define WINDOW_NAME "Alarmstufe Rot"
 #endif
 
@@ -280,6 +431,21 @@ int main(int argc, char* argv[])
     UtfArgs args(argc, argv);
     WWDebugString("RA95 - Starting up.\n");
 
+#ifdef IOS_BUILD
+    extern bool Ratouch_Ensure_Game_Data();
+    if (!Ratouch_Ensure_Game_Data()) {
+        return EXIT_FAILURE;
+    }
+    Ratouch_Set_iOS_Autosave_Callback(Ratouch_Autosave_On_Background);
+#endif
+
+#ifdef RATOUCH_MACOS_BUILD
+    if (!Ratouch_Ensure_Mac_Game_Data()) {
+        return EXIT_FAILURE;
+    }
+    Ratouch_Install_Mac_Shell();
+#endif
+
     if (Ram_Free(MEM_NORMAL) < 7000000) {
         printf(TEXT_NO_RAM);
 
@@ -291,6 +457,7 @@ int main(int argc, char* argv[])
     */
     Paths.Init("vanillara", CONFIG_FILE_NAME, "REDALERT.MIX", args.ArgV[0]);
     CDFileClass::Refresh_Search_Drives();
+    Prime_Local_Disc_Path();
 
     if (Parse_Command_Line(args.ArgC, args.ArgV)) {
 

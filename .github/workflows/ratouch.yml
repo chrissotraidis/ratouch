@@ -1,0 +1,53 @@
+name: ratouch
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  public-repo-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify public repository
+        run: python3 scripts/verify-public-repo.py
+
+  macos-sdl-audio-and-tests:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install build dependencies
+        run: brew install cmake ninja sdl2-compat
+      - name: Configure
+        run: >-
+          cmake -S . -B build/ratouch-macos -G Ninja
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DBUILD_VANILLATD=OFF
+          -DBUILD_VANILLARA=ON
+          -DBUILD_TESTS=ON
+          -DBUILD_TOOLS=OFF
+          -DNETWORKING=OFF
+          -DSDL_AUDIO=ON
+          -DOPENAL=OFF
+      - name: Build
+        run: cmake --build build/ratouch-macos
+      - name: Test
+        run: ctest --test-dir build/ratouch-macos --output-on-failure
+
+  ios-simulator-build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install CMake
+        run: brew install cmake
+      - name: Build iOS Simulator app
+        run: scripts/build-ios-simulator.sh
+      - name: Inspect bundle
+        run: |
+          test -f build/ios-simulator/Debug/vanillara.app/PrivacyInfo.xcprivacy
+          file build/ios-simulator/Debug/vanillara.app/vanillara
+          ! otool -L build/ios-simulator/Debug/vanillara.app/vanillara | grep -q OpenAL

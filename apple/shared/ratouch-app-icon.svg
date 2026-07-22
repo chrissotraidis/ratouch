@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">RAtouch app icon</title>
+  <desc id="desc">An original signal-red radar and touch mark on a charcoal field.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#202329"/>
+      <stop offset="1" stop-color="#070809"/>
+    </linearGradient>
+    <radialGradient id="signal" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ff6a5d" stop-opacity="0.52"/>
+      <stop offset="1" stop-color="#ff3b30" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="beam" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff3b30" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ff3b30" stop-opacity="0.88"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+  </defs>
+  <rect x="42" y="42" width="940" height="940" rx="218" fill="#000" opacity="0.44" filter="url(#shadow)"/>
+  <rect x="48" y="48" width="928" height="928" rx="208" fill="url(#background)"/>
+  <path d="M84 694L940 168" stroke="#2c3037" stroke-width="3"/>
+  <path d="M84 806L940 280" stroke="#2c3037" stroke-width="3"/>
+  <circle cx="512" cy="512" r="344" fill="url(#signal)"/>
+  <circle cx="512" cy="512" r="284" fill="none" stroke="#f4ead7" stroke-opacity="0.18" stroke-width="10"/>
+  <circle cx="512" cy="512" r="194" fill="none" stroke="#f4ead7" stroke-opacity="0.3" stroke-width="10"/>
+  <circle cx="512" cy="512" r="104" fill="none" stroke="#ff3b30" stroke-width="14"/>
+  <path d="M512 512L825 250A408 408 0 0 1 894 360Z" fill="url(#beam)" opacity="0.9"/>
+  <path d="M512 204V820M204 512H820" stroke="#f4ead7" stroke-opacity="0.16" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="512" cy="512" r="38" fill="#ff3b30"/>
+  <circle cx="512" cy="512" r="15" fill="#f4ead7"/>
+  <circle cx="746" cy="358" r="36" fill="#f4ead7"/>
+  <circle cx="746" cy="358" r="62" fill="none" stroke="#f4ead7" stroke-opacity="0.55" stroke-width="9"/>
+  <path d="M746 420V610" stroke="#f4ead7" stroke-width="28" stroke-linecap="round"/>
+  <path d="M746 610L680 702M746 610L812 702" fill="none" stroke="#f4ead7" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="288" cy="680" r="18" fill="#58b7b3"/>
+  <circle cx="334" cy="712" r="12" fill="#58b7b3" opacity="0.72"/>
+</svg>

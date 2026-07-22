@@ -81,6 +81,9 @@
 #include "vortex.h"
 #include "common/framelimit.h"
 #include "common/paths.h"
+#if defined(RATOUCH_MACOS_BUILD) || defined(IOS_BUILD)
+#include "common/ratouch_gameplay.h"
+#endif
 #include "common/vqatask.h"
 #include "common/vqaloader.h"
 #include "common/settings.h"
@@ -194,6 +197,10 @@ void Main_Game(int argc, char* argv[])
         if (RunningAsDLL) {
             return;
         }
+
+#if defined(RATOUCH_MACOS_BUILD) || defined(IOS_BUILD)
+        Ratouch_Set_Gameplay_Active(true);
+#endif
 
         fade = false;
         ScenarioInit = 0; // Kludge.
@@ -376,6 +383,9 @@ void Main_Game(int argc, char* argv[])
         }
 #endif
 
+#if defined(RATOUCH_MACOS_BUILD) || defined(IOS_BUILD)
+        Ratouch_Set_Gameplay_Active(false);
+#endif
         Set_Video_Cursor_Clip(false);
 
         /*

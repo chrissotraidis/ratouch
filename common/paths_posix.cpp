@@ -198,14 +198,21 @@ const char* PathsClass::User_Path()
 {
     if (UserPath.empty()) {
 #ifdef __APPLE__
-        UserPath = User_Home() + "/Library/Application Support/Vanilla-Conquer";
+        const char* asset_root = std::getenv("RATOUCH_ASSET_ROOT");
+        if (asset_root != nullptr && asset_root[0] != '\0') {
+            UserPath = asset_root;
+        } else {
+            UserPath = User_Home() + "/Library/Application Support/Ratouch";
+            if (!Suffix.empty()) {
+                UserPath += SEP + Suffix;
+            }
+        }
 #else
         UserPath = Get_Posix_Default("XDG_CONFIG_HOME", ".config") + "/vanilla-conquer";
-#endif
-
         if (!Suffix.empty()) {
             UserPath += SEP + Suffix;
         }
+#endif
 
         Create_Directory(UserPath.c_str());
     }

@@ -39,7 +39,9 @@
 #include <stdint.h>
 
 #ifdef SDL_BUILD
+#ifndef IOS_BUILD
 #define SDL_MAIN_HANDLED
+#endif
 #include <SDL.h>
 #endif
 
@@ -879,6 +881,8 @@ public:
     virtual void Close_Controller();
     virtual bool Is_Analog_Scroll_Active();
     virtual unsigned char Get_Scroll_Direction();
+    virtual bool Consume_Analog_Scroll(unsigned char& direction, int& pixel_distance);
+    virtual bool Is_Mouse_Edge_Scroll_Allowed();
 
 #if defined(_WIN32) && !defined(SDL_BUILD)
     /* Define the main hook for the message processing loop.					*/

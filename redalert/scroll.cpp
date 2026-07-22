@@ -96,12 +96,13 @@ void ScrollClass::AI(KeyNumType& input, int x, int y)
         /*
 		**	Special check to not scroll within the special no-scroll regions.
 		*/
-        bool noscroll = false;
+		bool noscroll = !Keyboard->Is_Mouse_Edge_Scroll_Allowed();
 
 #ifdef SDL2_BUILD
-        if (Keyboard->Is_Analog_Scroll_Active()) {
-            unsigned char scrollDirection = Keyboard->Get_Scroll_Direction();
-            int scrollDistance = (7 - Options.ScrollRate) * 20;
+        unsigned char scrollDirection = SDIR_NONE;
+        int touchPixels = 0;
+        if (Keyboard->Consume_Analog_Scroll(scrollDirection, touchPixels)) {
+            int scrollDistance = touchPixels > 0 ? Pixel_To_Lepton(touchPixels) : (7 - Options.ScrollRate) * 20;
             Scroll_Map((DirType)scrollDirection, scrollDistance, true);
         }
 #endif

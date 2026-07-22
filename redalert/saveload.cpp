@@ -53,6 +53,7 @@
 #include "lcwstraw.h"
 #include "vortex.h"
 #include "carry.h"
+#include "savegame_version.h"
 
 #ifdef REMASTER_BUILD
 extern bool DLLSave(Pipe& file);
@@ -62,22 +63,6 @@ extern bool DLLLoad(Straw& file);
 //#define	SAVE_BLOCK_SIZE	512
 #define SAVE_BLOCK_SIZE 4096
 //#define	SAVE_BLOCK_SIZE	1024
-
-/*
-********************************** Defines **********************************
-*/
-#define SAVEGAME_VERSION                                                                                               \
-    (DESCRIP_MAX + 0x01000006                                                                                          \
-     + (sizeof(AircraftClass) + sizeof(AircraftTypeClass) + sizeof(AnimClass) + sizeof(AnimTypeClass)                  \
-        + sizeof(BaseClass) + sizeof(BuildingClass) + sizeof(BuildingTypeClass) + sizeof(BulletClass)                  \
-        + sizeof(BulletTypeClass) + sizeof(CellClass) + sizeof(FactoryClass) + sizeof(HouseClass)                      \
-        + sizeof(HouseTypeClass) + sizeof(InfantryClass) + sizeof(InfantryTypeClass) + sizeof(LayerClass)              \
-        + sizeof(MouseClass) + sizeof(OverlayClass) + sizeof(OverlayTypeClass) + sizeof(SmudgeClass)                   \
-        + sizeof(SmudgeTypeClass) + sizeof(TeamClass) + sizeof(TeamTypeClass) + sizeof(TemplateClass)                  \
-        + sizeof(TemplateTypeClass) + sizeof(TerrainClass) + sizeof(TerrainTypeClass) + sizeof(TriggerClass)           \
-        + sizeof(TriggerTypeClass) + sizeof(UnitClass) + sizeof(UnitTypeClass) + sizeof(VesselClass)                   \
-        + sizeof(ScenarioClass) + sizeof(ChronalVortexClass)))
-//										sizeof(Waypoint)))
 
 static int Reconcile_Players(void);
 extern bool Is_Mission_Counterstrike(char* file_name);
@@ -400,10 +385,7 @@ bool Save_Game(const char* file_name, const char* descr)
     /*
     **	Save the save-game version, for loading verification
     */
-    unsigned int version = SAVEGAME_VERSION;
-#ifdef FIXIT_CSII //	checked - ajw 9/28/98
-    version++;
-#endif
+    unsigned int version = Red_Alert_Savegame_Header_Version();
     fpipe.Put(&version, sizeof(version));
 
     int pos = file.Seek(0, SEEK_CUR);
@@ -557,15 +539,9 @@ bool Load_Game(const char* file_name)
         return (false);
     }
     GameVersion = version;
-#ifdef FIXIT_CSII //	checked - ajw 9/28/98
-    if (version != SAVEGAME_VERSION && ((version - 1) != SAVEGAME_VERSION)) {
+    if (!Is_Red_Alert_Savegame_Version_Compatible(version)) {
         return (false);
     }
-#else
-    if (version != SAVEGAME_VERSION /*&& version != 0x0100616D*/) {
-        return (false);
-    }
-#endif
     /*
     **	Get the message digest that is embedded in the file.
     */
@@ -1466,11 +1442,7 @@ bool Get_Savefile_Info(int id, char* buf, unsigned* scenp, HousesType* housep)
     if (straw.Get(&version, sizeof(version)) != sizeof(version)) {
         return (false);
     }
-#ifdef FIXIT_CSII //	checked - ajw 9/28/98
-    if (version != SAVEGAME_VERSION && ((version - 1 != SAVEGAME_VERSION))) {
-#else
-    if (version != SAVEGAME_VERSION) {
-#endif
+    if (!Is_Red_Alert_Savegame_Version_Compatible(version)) {
         return (false);
     }
     return (true);

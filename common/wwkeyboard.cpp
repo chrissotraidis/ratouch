@@ -466,6 +466,21 @@ unsigned char WWKeyboardClass::Get_Scroll_Direction()
     return SDIR_NONE;
 }
 
+bool WWKeyboardClass::Consume_Analog_Scroll(unsigned char& direction, int& pixel_distance)
+{
+    if (!Is_Analog_Scroll_Active()) {
+        return false;
+    }
+    direction = Get_Scroll_Direction();
+    pixel_distance = 0;
+    return true;
+}
+
+bool WWKeyboardClass::Is_Mouse_Edge_Scroll_Allowed()
+{
+    return true;
+}
+
 /***********************************************************************************************
  * WWKeyboardClass::Clear -- Clears the keyboard buffer.                                       *
  *                                                                                             *

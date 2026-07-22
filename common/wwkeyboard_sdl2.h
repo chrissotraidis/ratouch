@@ -1,9 +1,13 @@
 #pragma once
 #include "wwkeyboard.h"
+#ifdef IOS_BUILD
+#include "wwtouch.h"
+#endif
 
 class WWKeyboardClassSDL2 : public WWKeyboardClass
 {
 public:
+    WWKeyboardClassSDL2();
     virtual ~WWKeyboardClassSDL2();
 
     virtual void Fill_Buffer_From_System(void);
@@ -12,12 +16,20 @@ public:
     virtual void Close_Controller();
     virtual bool Is_Analog_Scroll_Active();
     virtual unsigned char Get_Scroll_Direction();
+    virtual bool Consume_Analog_Scroll(unsigned char& direction, int& pixel_distance);
+    virtual bool Is_Mouse_Edge_Scroll_Allowed();
     virtual KeyASCIIType To_ASCII(unsigned short key);
 
 private:
     void Handle_Controller_Axis_Event(const SDL_ControllerAxisEvent& motion);
     void Handle_Controller_Button_Event(const SDL_ControllerButtonEvent& button);
     void Process_Controller_Axis_Motion();
+#ifdef IOS_BUILD
+    void Handle_Touch_Actions(const std::vector<WWTouchAction>& actions);
+    void Handle_Touch_Event(const SDL_TouchFingerEvent& touch, uint32_t type);
+    void Refresh_Touch_Preferences();
+    ScrollDirType Touch_Scroll_Direction(float dx, float dy) const;
+#endif
 
     // used to convert user-friendly pointer speed values into more useable ones
     static constexpr float CONTROLLER_SPEED_MOD = 2000000.0f;
@@ -42,4 +54,15 @@ private:
     float ControllerSpeedBoost = 1;
     bool AnalogScrollActive = false;
     ScrollDirType ScrollDirection = SDIR_NONE;
+    bool MouseButtonAccepted[3] = {false, false, false};
+#ifdef IOS_BUILD
+    WWTouchState Touch;
+    WWMovieInputGuard MouseMovieInput;
+    WWMovieInputGuard TouchMovieInput;
+    WWPointerInputOwner PointerOwner;
+    bool TouchPanInverted = false;
+    bool TouchLeftAccepted = false;
+    bool TouchRightAccepted = false;
+    WWTouchScrollBuffer TouchScroll;
+#endif
 };

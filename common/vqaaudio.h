@@ -27,6 +27,11 @@
 #include <alc.h>
 #endif
 
+#ifdef SDL_AUDIO_BUILD
+#include <SDL.h>
+struct SampleTrackerTypeImp;
+#endif
+
 typedef struct _VQAHandle VQAHandle;
 
 typedef enum
@@ -94,6 +99,9 @@ typedef struct
 #ifdef OPENAL_BUILD
     ALuint OpenALSource;
     ALuint AudioBuffers[OPENAL_BUFFER_COUNT];
+#endif
+#ifdef SDL_AUDIO_BUILD
+    SampleTrackerTypeImp* SDLSample;
 #endif
 } VQAAudio;
 

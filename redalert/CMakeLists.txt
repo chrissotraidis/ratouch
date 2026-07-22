@@ -148,6 +148,26 @@ set(REDALERT_SRC
     wolstrng.cpp
 )
 
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    list(APPEND REDALERT_SRC
+        "${CMAKE_SOURCE_DIR}/apple/ios/ratouch_bootstrap.mm"
+        "${CMAKE_SOURCE_DIR}/apple/ios/controls.mm"
+        "${CMAKE_SOURCE_DIR}/apple/ios/setup.mm"
+        "${CMAKE_SOURCE_DIR}/apple/shared/iso9660.cpp"
+        "${CMAKE_SOURCE_DIR}/apple/shared/mix_validator.cpp"
+        "${CMAKE_SOURCE_DIR}/apple/shared/asset_manifest.cpp"
+        "${CMAKE_SOURCE_DIR}/apple/shared/importer.mm"
+    )
+elseif(APPLE AND MAKE_BUNDLE)
+    list(APPEND REDALERT_SRC
+        "${CMAKE_SOURCE_DIR}/apple/macos/setup.mm"
+        "${CMAKE_SOURCE_DIR}/apple/shared/iso9660.cpp"
+        "${CMAKE_SOURCE_DIR}/apple/shared/mix_validator.cpp"
+        "${CMAKE_SOURCE_DIR}/apple/shared/asset_manifest.cpp"
+        "${CMAKE_SOURCE_DIR}/apple/shared/importer.mm"
+    )
+endif()
+
 if(NETWORKING)
     list(APPEND REDALERT_NET_SRC
         ipxconn.cpp
@@ -220,7 +240,11 @@ endif()
 if(BUILD_VANILLARA)
     include(BuildIcons)
     # Create the custom command for generating the ico file for windows.
-    make_icon(INPUT "${CMAKE_SOURCE_DIR}/resources/vanillara_icon.svg" OUTPUT VANILLARA_ICON)
+    if(APPLE AND MAKE_BUNDLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        set(VANILLARA_ICON "${CMAKE_SOURCE_DIR}/apple/shared/ratouch-app-icon.icns")
+    else()
+        make_icon(INPUT "${CMAKE_SOURCE_DIR}/resources/vanillara_icon.svg" OUTPUT VANILLARA_ICON)
+    endif()
 
     if(WIN32 OR CMAKE_SYSTEM_NAME STREQUAL "Windows")
         # Generate windows version info.
@@ -242,6 +266,9 @@ if(BUILD_VANILLARA)
     add_executable(VanillaRA ${REDALERT_SRC} ${REDALERT_NET_SRC} ${REDALERT_HEADERS} ${VANILLARA_RC} ${VANILLARA_ICON})
 
     if(MAKE_BUNDLE)
+        set(RATOUCH_LICENSE "${CMAKE_SOURCE_DIR}/License.txt")
+        target_sources(VanillaRA PRIVATE "${RATOUCH_LICENSE}")
+        set_source_files_properties("${RATOUCH_LICENSE}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
         set_source_files_properties(${VANILLARA_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
         set_target_properties(VanillaRA PROPERTIES
             MACOSX_BUNDLE True
@@ -252,12 +279,46 @@ if(BUILD_VANILLARA)
             MACOSX_BUNDLE_COPYRIGHT "Based on code released under GPLv3 by EA"
             MACOSX_BUNDLE_ICON_FILE "vanillara_icon.icns"
         )
+        if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+            set_target_properties(VanillaRA PROPERTIES
+                MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/apple/macos/Info.plist.in"
+                MACOSX_BUNDLE_GUI_IDENTIFIER "com.chrissotraidis.ratouch.macos"
+                MACOSX_BUNDLE_BUNDLE_NAME "RAtouch"
+                MACOSX_BUNDLE_ICON_FILE "ratouch-app-icon.icns"
+            )
+        endif()
+    endif()
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        set(RATOUCH_PRIVACY_MANIFEST "${CMAKE_SOURCE_DIR}/apple/ios/PrivacyInfo.xcprivacy")
+        set(RATOUCH_ASSET_CATALOG "${CMAKE_SOURCE_DIR}/apple/ios/Assets.xcassets")
+        target_sources(VanillaRA PRIVATE "${RATOUCH_PRIVACY_MANIFEST}" "${RATOUCH_ASSET_CATALOG}")
+        set_source_files_properties("${RATOUCH_PRIVACY_MANIFEST}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+        set_source_files_properties("${RATOUCH_ASSET_CATALOG}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+        target_link_options(VanillaRA PRIVATE "LINKER:-framework,UniformTypeIdentifiers")
+        set_target_properties(VanillaRA PROPERTIES
+            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/apple/ios/Info.plist.in"
+            XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
+            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.chrissotraidis.ratouch"
+            XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon"
+            XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"
+            XCODE_ATTRIBUTE_SUPPORTS_MACCATALYST "NO"
+            XCODE_ATTRIBUTE_ENABLE_BITCODE "NO"
+        )
     endif()
 
     target_compile_definitions(VanillaRA PUBLIC $<$<CONFIG:Debug>:_DEBUG> ${VANILLA_DEFS})
+    if(APPLE AND MAKE_BUNDLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        target_compile_definitions(VanillaRA PRIVATE RATOUCH_MACOS_BUILD)
+        target_link_options(VanillaRA PRIVATE "LINKER:-framework,AppKit")
+    endif()
     target_include_directories(VanillaRA PUBLIC ${CMAKE_SOURCE_DIR} .)
     target_link_libraries(VanillaRA commonv ${VANILLA_LIBS} ${STATIC_LIBS})
-    set_target_properties(VanillaRA PROPERTIES OUTPUT_NAME vanillara)
+    if(APPLE AND MAKE_BUNDLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        set_target_properties(VanillaRA PROPERTIES OUTPUT_NAME RAtouch)
+    else()
+        set_target_properties(VanillaRA PROPERTIES OUTPUT_NAME vanillara)
+    endif()
     if(MAP_EDITORRA)
         target_compile_definitions(VanillaRA PUBLIC INTERNAL_VERSION)
     endif()
