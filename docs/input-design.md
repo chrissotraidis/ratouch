@@ -41,7 +41,9 @@ The original sidebar already exposes Options, Sidebar, Repair, Sell, Map, build 
 | Force move / force attack | Option / Control | Move+ / Attack+ for the next tactical action | Original force-move and force-attack gameplay paths verified in Simulator |
 | Add to selection / queued move | Shift / Q | Add+ / Queue+ for the next tactical action | Additive selection and ordered two-waypoint movement verified in Simulator |
 | Control groups 1–0 | Number recalls; Control-number assigns | Groups sheet with Recall / Assign selected modes | Implemented through original key semantics; formation assignment, context switch, recall, background autosave, cold reload, and post-load recall verified in a live Allied mission |
-| Formation, bookmarks, alliance, resign | Original keys / menus | Original menus or hardware keyboard | No overlay until play evidence shows a blocking need |
+| Formation / map bookmarks | Original keys | Hardware keyboard | Convenience shortcuts rather than core orders; no permanent overlay without blocking play evidence |
+| Alliance | Original key | Hardware keyboard | Deferred with iPad multiplayer; v1 single-player and skirmish do not need a persistent control |
+| Save, load, resign | Original Options menu | Original Options menu | Native Simulator finger taps opened the full menu and the guarded Abort / Restart / Cancel confirmation; no duplicate overlay is needed |
 
 ## Overlay placement
 

@@ -69,7 +69,7 @@ The simulation is shared. The control surface is not forced to pretend that a fi
 
 One finger keeps Red Alert's original left-button semantics: tap to select or order, drag to box-select. Two fingers own map movement and zoom, with an intent dead zone that prevents hand jitter from becoming camera motion. Long press supplies right-click. A real mouse or trackpad immediately restores pointer behavior and edge scrolling.
 
-The slim native command tab supplies the actions an iPad keyboard does not: one-shot Attack+, Move+, Add+, and Queue+ modifiers; groups 1–0; save/load; and a complete Controls sheet. It can sit on either safe-area edge for handedness, stays clear of the game sidebar, scales with Dynamic Type, and lets touches outside its controls pass through to the battlefield.
+The slim native command tab supplies the actions an iPad keyboard does not: one-shot Attack+, Move+, Add+, and Queue+ modifiers; groups 1–0; and a complete Controls sheet. Save, load, and resign stay in Red Alert's original Options menu, which accepts direct touch. The tab can sit on either safe-area edge for handedness, stays clear of the game sidebar, scales with Dynamic Type, and lets touches outside its controls pass through to the battlefield.
 
 The complete hotkey coverage matrix, overlay rules, and repeatable playtest loop live in [the input and gameplay refinement contract](docs/input-design.md).
 
