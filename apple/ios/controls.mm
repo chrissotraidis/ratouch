@@ -1009,7 +1009,7 @@ void Toggle_One_Shot_Modifier(RatouchModifier modifier)
     [self.view addSubview:self.commandButton];
 
     UIButton* stop = [self actionButtonWithTitle:@"Stop" subtitle:@"Stop selected units" scancode:SDL_SCANCODE_S];
-    UIButton* guard = [self actionButtonWithTitle:@"Guard" subtitle:@"Guard with selected units" scancode:SDL_SCANCODE_G];
+    UIButton* guard = [self actionButtonWithTitle:@"Guard" subtitle:@"Stop and defend the nearby area" scancode:SDL_SCANCODE_G];
     UIButton* scatter = [self actionButtonWithTitle:@"Scatter" subtitle:@"Scatter selected units" scancode:SDL_SCANCODE_X];
     UIButton* next = [self actionButtonWithTitle:@"Next" subtitle:@"Select the next unit" scancode:SDL_SCANCODE_N];
     UIButton* base = [self actionButtonWithTitle:@"Base" subtitle:@"Center the view on your base" scancode:SDL_SCANCODE_H];

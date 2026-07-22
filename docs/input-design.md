@@ -33,7 +33,7 @@ The original sidebar already exposes Options, Sidebar, Repair, Sell, Map, build 
 | Deselect / right-click | Right-click | Long press | Implemented with native haptic wiring; physical feel remains a device gate |
 | Scroll map | Edge / arrows / trackpad | Two-finger drag with an 8 pt intent dead zone and distance-proportional travel | Implemented and deterministic-tested; tune direction and velocity on device |
 | Zoom presentation | App control | Pinch; double two-finger tap resets to fit | Implemented and deterministic-tested |
-| Stop, Guard, Scatter | S, G, X | Command palette | Implemented and Simulator-verified |
+| Stop, Guard, Scatter | S, G, X | Command palette | Implemented and Simulator-verified; Guard interrupts movement and enters Red Alert's area-defense mission |
 | Next unit, Base, Select View | N, H, E | Command palette | Implemented and Simulator-verified |
 | Repair, Sell, Map | T, Y, U or sidebar | Original sidebar | Already touchable |
 | Force move / force attack | Option / Control | Move+ / Attack+ for the next tactical action | Original force-move and force-attack gameplay paths verified in Simulator |
