@@ -9,10 +9,16 @@
 namespace
 {
 std::atomic<int> Saves(0);
+std::atomic<int> FocusLosses(0);
 
 void Autosave()
 {
     ++Saves;
+}
+
+void FocusLoss()
+{
+    ++FocusLosses;
 }
 
 void Push(uint32_t type)
@@ -28,12 +34,14 @@ int main()
 {
     assert(SDL_Init(SDL_INIT_EVENTS) == 0);
     Ratouch_Set_iOS_Autosave_Callback(Autosave);
+    Ratouch_Set_iOS_Focus_Loss_Callback(FocusLoss);
     Ratouch_Install_iOS_Lifecycle_Filter();
 
     for (int cycle = 0; cycle < 100; ++cycle) {
         Push(SDL_APP_WILLENTERBACKGROUND);
         Push(SDL_APP_DIDENTERBACKGROUND);
         assert(Ratouch_iOS_Should_Pause());
+        assert(FocusLosses.load() == cycle + 1);
 
         std::thread resume([] {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -45,6 +53,7 @@ int main()
 
         assert(!Ratouch_iOS_Should_Pause());
         assert(Saves.load() == cycle + 1);
+        assert(FocusLosses.load() == cycle + 1);
         Ratouch_iOS_Process_Pause();
         assert(Saves.load() == cycle + 1);
     }

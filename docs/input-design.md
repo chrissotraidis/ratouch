@@ -53,7 +53,7 @@ Controls also links to a non-gameplay `Game data` sheet. It reports the installe
 
 Movie input remains on the movie side of the transition. The shared touch/pointer guard consumes a skip gesture through release and also blocks input observed during the first non-movie poll. Main-menu initialization force-presents its first completed frame and clears transition input before the menu becomes interactive; a quiet poll or completed release then clears the boundary so the next deliberate menu gesture is accepted immediately.
 
-These are not timed fake key taps. The overlay presses the original SDL modifier key, the engine evaluates the unmodified Red Alert action path, and the key is released at the corresponding engine mouse release. A right-click, overlay hide, replacement modifier, explicit second tap, transition into the original Options menu, or transition into the non-tactical Controls or Groups sheets also releases it, preventing a stale tactical action after a UI detour. Resume always restores the neutral `COMMANDS` tab rather than the previously armed modifier.
+These are not timed fake key taps. The overlay presses the original SDL modifier key, the engine evaluates the unmodified Red Alert action path, and the key is released at the corresponding engine mouse release. A right-click, overlay hide, replacement modifier, explicit second tap, application backgrounding, transition into the original Options menu, or transition into the non-tactical Controls or Groups sheets also releases it, preventing a stale tactical action after an interruption or UI detour. Foregrounding or resuming always restores the neutral `COMMANDS` tab rather than the previously armed modifier.
 
 This placement is intentionally low-risk: it avoids the original top Options/money/sidebar chrome, does not permanently cover the map, meets the 44-point target baseline, and gives every control a VoiceOver label and hint. A later Settings surface may add a hide toggle, but the handedness requirement is complete without creating a second persistent overlay.
 
@@ -65,7 +65,7 @@ Each refinement pass must exercise a real campaign or skirmish state, not only m
 2. Drag-select near the dead-zone boundary and immediately transition into two-finger pan.
 3. Pan in all eight directions, pinch through every zoom step, then recover the sidebar and map.
 4. Use every immediate command and one-shot modifier with a valid selection; verify the palette never steals nearby map taps and every armed state releases after one action.
-5. Save, load, background, foreground, and repeat the input pass. Lifecycle regression runs 100 deterministic cycles; Simulator batches exercise real Home/foreground transitions over a live mission.
+5. Save, load, background, foreground, and repeat the input pass. Arm a one-shot modifier before at least one Home transition and verify foregrounding cancels it. Lifecycle regression runs 100 deterministic cycles; Simulator batches exercise real Home/foreground transitions over a live mission.
 6. Log the symptom and change only one threshold, gesture, or overlay behavior per iteration.
 
 Simulator is the continuous smoke environment. Physical iPad testing owns gesture feel, Pencil, trackpad, haptics, thermals, audio interruption, and accessibility sign-off.

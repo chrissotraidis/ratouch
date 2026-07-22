@@ -9,6 +9,7 @@ std::atomic<bool> Backgrounded(false);
 std::atomic<bool> Inactive(false);
 std::atomic<bool> AutosaveRequested(false);
 RatouchAutosaveCallback Autosave = nullptr;
+RatouchFocusLossCallback FocusLoss = nullptr;
 
 int Lifecycle_Filter(void*, SDL_Event* event)
 {
@@ -17,6 +18,9 @@ int Lifecycle_Filter(void*, SDL_Event* event)
         Inactive.store(true, std::memory_order_release);
         Backgrounded.store(true, std::memory_order_release);
         AutosaveRequested.store(true, std::memory_order_release);
+        if (FocusLoss != nullptr) {
+            FocusLoss();
+        }
         break;
     case SDL_APP_DIDENTERBACKGROUND:
         Backgrounded.store(true, std::memory_order_release);
@@ -46,6 +50,11 @@ void Ratouch_Install_iOS_Lifecycle_Filter()
 void Ratouch_Set_iOS_Autosave_Callback(RatouchAutosaveCallback callback)
 {
     Autosave = callback;
+}
+
+void Ratouch_Set_iOS_Focus_Loss_Callback(RatouchFocusLossCallback callback)
+{
+    FocusLoss = callback;
 }
 
 bool Ratouch_iOS_Should_Pause()

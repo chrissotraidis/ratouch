@@ -44,6 +44,7 @@
 #endif
 #include "common/utfargs.h"
 #ifdef IOS_BUILD
+#include "common/ios_controls.h"
 #include "common/ios_lifecycle.h"
 #endif
 
@@ -437,6 +438,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     Ratouch_Set_iOS_Autosave_Callback(Ratouch_Autosave_On_Background);
+    Ratouch_Set_iOS_Focus_Loss_Callback(Ratouch_iOS_Cancel_One_Shot_Modifier);
 #endif
 
 #ifdef RATOUCH_MACOS_BUILD
