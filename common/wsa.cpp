@@ -126,6 +126,14 @@ unsigned int WSA_Delta_Payload_Size(unsigned int declared_largest_frame_size, un
     return declared_payload > first_frame_size ? declared_payload : first_frame_size;
 }
 
+bool WSA_Delta_Range_Is_Valid(unsigned int begin,
+                              unsigned int end,
+                              unsigned int largest_frame_size,
+                              unsigned int data_size)
+{
+    return begin != 0 && end > begin && end <= data_size && end - begin <= largest_frame_size;
+}
+
 //
 // Header structure for the file.
 // NOTE:  The 'total_frames' field is used to differentiate between Amiga and IBM
@@ -924,7 +932,17 @@ static bool Apply_Delta(SysAnimHeaderType* sys_header, int curr_frame, char* des
         // copy it into buffer
 
         frame_offset = Get_Resident_Frame_Offset(sys_header->file_buffer, curr_frame);
-        frame_data_size = Get_Resident_Frame_Offset(sys_header->file_buffer, curr_frame + 1) - frame_offset;
+        const unsigned int frame_end = Get_Resident_Frame_Offset(sys_header->file_buffer, curr_frame + 1);
+        const uintptr_t resident_offset = reinterpret_cast<uintptr_t>(sys_header->file_buffer)
+            - reinterpret_cast<uintptr_t>(sys_header);
+        if (resident_offset > sys_header->anim_mem_size
+            || !WSA_Delta_Range_Is_Valid(frame_offset,
+                                         frame_end,
+                                         sys_header->largest_frame_size,
+                                         sys_header->anim_mem_size - resident_offset)) {
+            return false;
+        }
+        frame_data_size = frame_end - frame_offset;
 
         data_ptr = (char*)Add_Long_To_Pointer(sys_header->file_buffer, frame_offset);
         delta_back = (char*)Add_Long_To_Pointer(delta_back, sys_header->largest_frame_size - frame_data_size);
@@ -942,14 +960,19 @@ static bool Apply_Delta(SysAnimHeaderType* sys_header, int curr_frame, char* des
         //	Read it into buffer -- Return if correct amount not read.-- errors??
 
         file_handle = sys_header->file_handle;
-        Seek_File(file_handle, 0L, SEEK_SET);
+        const int file_size = Seek_File(file_handle, 0L, SEEK_END);
 
         frame_offset = Get_File_Frame_Offset(file_handle, curr_frame, palette_adjust);
-        frame_data_size = Get_File_Frame_Offset(file_handle, curr_frame + 1, palette_adjust) - frame_offset;
+        const unsigned int frame_end = Get_File_Frame_Offset(file_handle, curr_frame + 1, palette_adjust);
 
-        if (!frame_offset || !frame_data_size) {
+        if (file_size <= 0
+            || !WSA_Delta_Range_Is_Valid(frame_offset,
+                                         frame_end,
+                                         sys_header->largest_frame_size,
+                                         static_cast<unsigned int>(file_size))) {
             return (false);
         }
+        frame_data_size = frame_end - frame_offset;
 
         Seek_File(file_handle, frame_offset, SEEK_SET);
         delta_back = (char*)Add_Long_To_Pointer(delta_back, sys_header->largest_frame_size - frame_data_size);

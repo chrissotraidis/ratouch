@@ -43,6 +43,11 @@ bool Video_Presentation_Button_Event(bool pressed, bool inside_presentation, boo
     return true;
 }
 
+bool Video_Use_Relative_Mouse(bool raw_input, bool windowed)
+{
+    return raw_input && !windowed;
+}
+
 void Video_Window_Point_To_Game(const VideoPresentationGeometry& geometry,
                                 float window_x,
                                 float window_y,

@@ -113,6 +113,14 @@ unsigned int Get_Animation_Size(void const* handle);
 // runtime buffer must cover whichever payload is larger.
 unsigned int WSA_Delta_Payload_Size(unsigned int declared_largest_frame_size, unsigned int first_frame_size);
 
+// Reject corrupt frame-table entries before using their unsigned difference as
+// a copy/read size. This keeps malformed or incompatible WSA assets from
+// turning a score-screen animation into an out-of-bounds memory access.
+bool WSA_Delta_Range_Is_Valid(unsigned int begin,
+                              unsigned int end,
+                              unsigned int largest_frame_size,
+                              unsigned int data_size);
+
 /***************************************************************************
  * OPEN_ANIMATION -- file name, flags, palette, system allocates buffer.   *
  *                                                                         *
