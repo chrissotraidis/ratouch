@@ -3,28 +3,38 @@
 </p>
 
 <p align="center">
-  <strong>The original 1996 real-time strategy simulation, rebuilt for the way Macs and iPads are actually used.</strong>
+  <strong>The original 1996 simulation, with a real Mac window and an iPad control model designed around touch.</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/chrissotraidis/ratouch/actions/workflows/ratouch.yml"><img alt="Apple build and tests" src="https://github.com/chrissotraidis/ratouch/actions/workflows/ratouch.yml/badge.svg"></a>
   <img alt="Status: active alpha" src="https://img.shields.io/badge/status-active_alpha-ff3b30">
+  <img alt="Tests: 24 passing" src="https://img.shields.io/badge/tests-24_passing-2f8f5b">
   <img alt="Platforms: macOS and iPadOS" src="https://img.shields.io/badge/platforms-macOS_%7C_iPadOS-f4ead7">
   <a href="License.txt"><img alt="License: GPL-3.0 with additional terms" src="https://img.shields.io/badge/license-GPL--3.0_with_terms-292c31"></a>
 </p>
 
 <p align="center">
   <a href="#install-and-run">Install</a> ·
-  <a href="#native-where-it-matters">Platforms</a> ·
+  <a href="#two-native-control-models">Platforms</a> ·
   <a href="#touch-controls">Touch controls</a> ·
   <a href="#bring-your-own-data">Game data</a> ·
   <a href="#project-status">Status</a> ·
+  <a href="docs/engineering-record-2026-07-21.md">Build record</a> ·
   <a href="#contributing">Contributing</a>
 </p>
 
 RAtouch preserves the campaigns, skirmish AI, movies, music, saves, build queues, and rules of the original game. It changes the platform layer around them: native Apple builds, sandbox-safe data import, lifecycle handling, modern audio, precise pointer input on Mac, and a deliberate touch grammar on iPad.
 
 This repository contains engine and platform code only. **It does not contain commercial game data.** You provide legally acquired compatible data on your own device.
+
+## Built, played, measured
+
+| Native apps | iPad control surface | Runtime proof | Public boundary |
+| --- | --- | --- | --- |
+| Apple-silicon macOS app and arm64 iPad Simulator app | Tap, drag, hold, two-finger pan, pinch, pointer, keyboard, command deck, and control groups | 24 automated tests, 58 documented iPad Simulator checks, and 15 Mac runtime checks | Original project artwork only; commercial data stays local and ignored |
+
+The first end-to-end build was completed in a 20-hour proof-gated session: implementation, repeated campaign and skirmish play, input tuning, lifecycle checks, crash repair, documentation, and publication. Read the concise [engineering record](docs/engineering-record-2026-07-21.md) or the complete [runtime evidence log](docs/build-status.md).
 
 <p align="center">
   <img src="docs/images/ratouch-gameplay-concept.png" alt="Original RAtouch concept art showing an abstract touch-driven tactical field on an iPad" width="100%">
@@ -42,7 +52,7 @@ RAtouch is source-build alpha software. There is no downloadable release or Test
 
 Your imported game files, settings, and saves remain local. RAtouch does not include advertising, analytics, tracking, or online multiplayer.
 
-## Native where it matters
+## Two native control models
 
 <p align="center">
   <img src="docs/images/platforms.svg" alt="macOS uses pointer precision and original hotkeys; iPadOS uses direct touch, control groups, and an accessible command deck" width="100%">
@@ -86,7 +96,9 @@ RAtouch is an active alpha, not a packaged public release.
 | Audio and UI | SDL2 game/movie audio, native command deck, Dynamic Type controls, display and volume settings, and bundled license views |
 | Automated proof | 24 tests, arm64 iPad Simulator build, macOS build, and public-repository hygiene verification |
 
-See the exact session evidence and remaining hardware/release gates in [build status](docs/build-status.md).
+See the [20-hour engineering record](docs/engineering-record-2026-07-21.md), exact session evidence in [build status](docs/build-status.md), and the maintained [input contract](docs/input-design.md).
+
+GitHub-hosted jobs are configured, but the latest runs were stopped before checkout because of an account billing/spending-limit restriction. The commands below are the same local gates used for the current passing result; hosted-runner status is not presented as source validation until those jobs can start.
 
 ### Still to verify
 
@@ -172,6 +184,18 @@ Issues and focused pull requests are welcome, especially for reproducible input 
 4. do not attach or commit commercial game assets, derived screenshots, archives, or saves.
 
 Start with the [input contract](docs/input-design.md), [build status](docs/build-status.md), and [PRD/build plan](docs/prd-build-plan.md). Security-sensitive reports should avoid including game data or personal save files.
+
+### Repository guide
+
+| Path | Purpose |
+| --- | --- |
+| `apple/ios/` | Native iPad setup, command deck, control groups, settings, lifecycle, and app metadata |
+| `apple/macos/` | Native Mac menus, settings, data management, and app metadata |
+| `apple/shared/` | Transactional importer, manifest, MIX validation, and ISO support shared by both apps |
+| `common/wwtouch.*` | Platform-neutral gesture recognizer and touch action model |
+| `tests/` | Gesture, geometry, lifecycle, settings, importer, audio, save, and regression coverage |
+| `docs/` | Product contract, engineering record, detailed evidence, provenance, and compatibility notes |
+| `ref/` | Local-only game-data workspace; everything except its policy files is ignored |
 
 ## Direction
 
