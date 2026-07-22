@@ -36,6 +36,7 @@ The original sidebar already exposes Options, Sidebar, Repair, Sell, Map, build 
 | Stop, Guard, Scatter | S, G, X | Command palette | Implemented and Simulator-verified; Guard interrupts movement and enters Red Alert's area-defense mission |
 | Next unit, Base, Select View | N, H, E | Command palette | Implemented and Simulator-verified |
 | Repair, Sell, Map | T, Y, U or sidebar | Original sidebar | Native Simulator taps armed the original repair and sell engine modes and toggled the radar to the player/kill panel; no duplicate overlay needed |
+| Scroll production queues | Sidebar arrows | Original sidebar arrows | A native Simulator down tap moved a five-item structure list from Power Plant through Ore Refinery to Concrete Wall through Advanced Power Plant; Up restored the original order, so no duplicate overlay is needed |
 | Force move / force attack | Option / Control | Move+ / Attack+ for the next tactical action | Original force-move and force-attack gameplay paths verified in Simulator |
 | Add to selection / queued move | Shift / Q | Add+ / Queue+ for the next tactical action | Additive selection and ordered two-waypoint movement verified in Simulator |
 | Control groups 1–0 | Number recalls; Control-number assigns | Groups sheet with Recall / Assign selected modes | Implemented through original key semantics; formation assignment, context switch, recall, background autosave, cold reload, and post-load recall verified in a live Allied mission |
