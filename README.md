@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>The original 1996 simulation, with a real Mac window and an iPad control model designed around touch.</strong>
+  <strong>The original Red Alert simulation, given a touch-first iPad control system and a native Mac home.</strong>
 </p>
 
 <p align="center">
@@ -15,24 +15,101 @@
 </p>
 
 <p align="center">
-  <a href="#install-and-run">Install</a> ·
-  <a href="#two-native-control-models">Platforms</a> ·
-  <a href="#touch-controls">Touch controls</a> ·
+  <a href="#why-ratouch-exists">Purpose</a> ·
+  <a href="#ratouch-and-openra">RAtouch and OpenRA</a> ·
+  <a href="#touch-is-the-product">Touch controls</a> ·
+  <a href="#availability">Availability</a> ·
+  <a href="#install-and-run">Build</a> ·
   <a href="#bring-your-own-data">Game data</a> ·
-  <a href="#project-status">Status</a> ·
   <a href="docs/engineering-record-2026-07-21.md">Build record</a> ·
   <a href="#contributing">Contributing</a>
 </p>
 
-RAtouch preserves the campaigns, skirmish AI, movies, music, saves, build queues, and rules of the original game. It changes the platform layer around them: native Apple builds, sandbox-safe data import, lifecycle handling, modern audio, precise pointer input on Mac, and a deliberate touch grammar on iPad.
+RAtouch is an Apple-platform port of the original Red Alert engine with one central goal: make a keyboard-and-mouse RTS genuinely playable by touch without redesigning the game underneath it.
+
+Tap selects or orders. One finger drag-selects. Two fingers move the map. Pinch zooms the presentation. A hold becomes the original right-click. A slim native command deck supplies the keyboard actions and control groups an iPad otherwise lacks.
+
+The campaigns, skirmish AI, movies, music, saves, production sidebar, hotkeys, and simulation rules remain engine-owned. RAtouch changes the platform and control layers around them.
+
+> **Current availability:** source-build alpha for Apple-silicon macOS and the arm64 iPad Simulator. A signed Mac DMG and physical-iPad/TestFlight builds are planned, not yet published.
 
 This repository contains engine and platform code only. **It does not contain commercial game data.** You provide legally acquired compatible data on your own device.
 
+## Why RAtouch exists
+
+Running Red Alert on modern hardware is a solved problem. Making its original interaction model feel good on a sheet of glass is not.
+
+The game assumes a precise pointer, two mouse buttons, keyboard modifiers, number groups, edge scrolling, and hotkeys that have no natural iPad equivalent. Simply turning every finger contact into a mouse click leaves selection, camera movement, right-click actions, queued orders, and recovery controls fighting one another.
+
+RAtouch treats that as the product problem:
+
+| Original assumption | RAtouch answer |
+| --- | --- |
+| Left mouse button | Tap to select, order, or use the original UI; drag one finger for anchored box selection |
+| Right mouse button | Hold one finger for the original deselect/context path |
+| Edge scroll and mouse wheel | Drag two fingers for proportional map movement; pinch for presentation zoom |
+| Modifier keys | One-shot Attack+, Move+, Add+, and Queue+ commands |
+| Number keys and Control-number | Native assign/recall control groups 1–0 |
+| Desktop menus and loose files | Native Apple lifecycle, Files import, autosave, safe areas, pointer support, and accessibility metadata |
+
+The result is not a mobile remake and not a layer of permanent virtual keyboard buttons. It is the original simulation with a deliberately translated control surface.
+
+## RAtouch and OpenRA
+
+[OpenRA](https://www.openra.net/about/) is a mature, cross-platform reimagining of classic RTS games. It modernizes the interface and gameplay with features such as attack-move, stances, fog of war, veterancy, revised production, multiplayer balance, replays, observers, and integrated online play.
+
+RAtouch takes a different path.
+
+| | RAtouch | OpenRA |
+| --- | --- | --- |
+| Primary goal | Preserve the original Red Alert simulation while making it work naturally on Apple hardware—especially iPad | Rebuild and modernize classic RTS games for contemporary desktop play and multiplayer |
+| Gameplay foundation | Vanilla Conquer and the original engine behavior | A separately developed engine with intentionally evolved rules and balance |
+| Touch approach | Dedicated iPad app, gesture recognizer, presentation zoom, keyboard-free command deck, control groups, safe-area UI, lifecycle handling, and native Files flow | Some touch-accessible desktop UI, including a unit control bar; no official iPadOS or iOS release |
+| macOS today | Verified source build; signed DMG is planned | Packaged, supported download available now |
+| Online play | Disabled in the maintained Apple builds | Integrated online multiplayer and community maps/mods |
+
+OpenRA is the better choice today if you want the easiest Mac installation, modern quality-of-life changes, or multiplayer. RAtouch is for players who want the original game behavior—or who want to play that original game directly on an iPad without pretending a finger is a mouse.
+
+OpenRA's own project pages describe its gameplay as evolved from the classic releases, list official downloads for Windows, macOS, and Linux, and document a touch-accessible desktop control bar. See [About OpenRA](https://www.openra.net/about/), [official downloads](https://www.openra.net/download/), and its [touch-accessibility announcement](https://www.openra.net/news/10th-anniversary/).
+
+## Touch is the product
+
+<p align="center">
+  <img src="docs/images/touch-controls.svg" alt="RAtouch gesture map: tap and one-finger drag; two-finger pan and pinch; keyboard-free command deck and control groups" width="100%">
+</p>
+
+One finger owns the original left-button semantics. Two fingers own navigation. That separation is the core rule: selecting units should not also move the camera, and moving the camera should not accidentally issue orders.
+
+The recognizer adds an intent dead zone before two-finger movement, samples both contacts before deciding between pan and pinch, rejects touches in presentation letterboxing, drains interrupted gestures cleanly, and keeps direct touch from triggering the original mouse-edge camera path. Pinch changes only presentation scale; it does not alter simulation scale.
+
+The native command deck appears only during live gameplay. It exposes actions that are materially difficult without a keyboard, remembers its left/right position, stays clear of the original production sidebar, scales with Dynamic Type, and disappears while Options, confirmations, score screens, or the main menu own input. Armed one-shot commands cancel on settings, backgrounding, and other ownership changes instead of leaking into the next map tap.
+
+The complete gesture state machine, overlay rules, hotkey coverage, and physical-device gates live in [the input and gameplay refinement contract](docs/input-design.md).
+
+## Two Apple control models
+
+<p align="center">
+  <img src="docs/images/platforms.svg" alt="macOS uses pointer precision and original hotkeys; iPadOS uses direct touch, control groups, and an accessible command deck" width="100%">
+</p>
+
+| | macOS | iPadOS |
+| --- | --- | --- |
+| Primary input | Mouse or trackpad + original hotkeys | Direct touch; hardware keyboard and pointer also supported |
+| Selection | Click or pointer drag | Tap or one-finger drag |
+| Map movement | Edge scroll, keys, pointer | Distance-proportional two-finger drag; direct touch never triggers edge scroll |
+| Context / deselect | Right-click | Hold one finger |
+| Display zoom | Native window and fullscreen controls | Pinch through fit, 1.5×, and 2×; double two-finger tap returns to fit |
+| Keyboard actions | Original keyboard available | Native command deck, one-shot modifiers, and ten control-group slots |
+| Game data | Native first-run picker into Application Support | Native Files picker into Application Support |
+| Presentation | Resizable Retina-aware window and fullscreen | Fullscreen landscape with safe-area-aware overlays |
+
+The simulation is shared. The control surface is designed for the device in front of it.
+
 ## Built, played, measured
 
-| Native apps | iPad control surface | Runtime proof | Public boundary |
+| Native apps | Touch evidence | Runtime proof | Public boundary |
 | --- | --- | --- | --- |
-| Apple-silicon macOS app and arm64 iPad Simulator app | Tap, drag, hold, two-finger pan, pinch, pointer, keyboard, command deck, and control groups | 24 automated tests, 58 documented iPad Simulator checks, and 15 Mac runtime checks | Original project artwork only; commercial data stays local and ignored |
+| Apple-silicon macOS app and arm64 iPad Simulator app | Tap, drag, hold, two-touch pinch/reset, command deck, control groups, pointer, and keyboard exercised in live missions | 24 automated tests, 58 documented iPad Simulator checks, and 15 Mac runtime checks | Original project artwork only; commercial data stays local and ignored |
 
 The first end-to-end build was completed in a 20-hour proof-gated session: implementation, repeated campaign and skirmish play, input tuning, lifecycle checks, crash repair, documentation, and publication. Read the concise [engineering record](docs/engineering-record-2026-07-21.md) or the complete [runtime evidence log](docs/build-status.md).
 
@@ -42,46 +119,23 @@ The first end-to-end build was completed in a 20-hour proof-gated session: imple
   <sub>Original RAtouch concept art — not a game screenshot and not built from commercial assets.</sub>
 </p>
 
-## Start here
+## Availability
 
-RAtouch is source-build alpha software. There is no downloadable release or TestFlight build yet.
+| Platform | Available now | Public distribution target |
+| --- | --- | --- |
+| macOS | Verified Apple-silicon source build | Developer ID–signed and notarized DMG |
+| iPadOS | Verified arm64 iPad Simulator source build | Physical-device beta, then TestFlight and an App Store attempt |
+| iPhone | Not a supported product target | No commitment until an explicit interaction and UI-quality gate passes |
+
+RAtouch is source-build alpha software. There is no downloadable DMG, IPA, or TestFlight build yet. A loose IPA is not the intended public experience: iPad distribution should move through signed physical-device builds and TestFlight after hardware playtesting.
+
+## Start here
 
 1. [Build and launch](#install-and-run) the native app for macOS or the iPad Simulator.
 2. On first launch, choose legally acquired compatible Red Alert data in the native picker.
 3. Play with a mouse and the original hotkeys on Mac, or use the keyboard-free touch controls on iPad.
 
 Your imported game files, settings, and saves remain local. RAtouch does not include advertising, analytics, tracking, or online multiplayer.
-
-## Two native control models
-
-<p align="center">
-  <img src="docs/images/platforms.svg" alt="macOS uses pointer precision and original hotkeys; iPadOS uses direct touch, control groups, and an accessible command deck" width="100%">
-</p>
-
-| | macOS | iPadOS |
-| --- | --- | --- |
-| Primary input | Mouse or trackpad + original hotkeys | Direct touch; hardware keyboard and pointer supported |
-| Selection | Click or pointer drag | Tap or one-finger drag |
-| Map movement | Edge scroll, keys, pointer | Distance-proportional two-finger drag after an intent dead zone; direct touch never triggers edge scroll |
-| Context / deselect | Right-click | Long press |
-| Display zoom | Window and presentation controls | Pinch through fit, 1.5×, and 2×; double two-finger tap returns to fit |
-| Missing keyboard actions | Full keyboard available | Accessible command palette, one-shot Attack+, Move+, Add+, and Queue+ modifiers, ten assignable control-group slots, and an in-game Controls sheet |
-| Game data | Native first-run picker into Application Support | Native Files picker into Application Support |
-| Window model | Resizable native window, macOS menus, and fullscreen toggle | Fullscreen landscape in v1 |
-
-The simulation is shared. The control surface is not forced to pretend that a finger is a mouse.
-
-## Touch controls
-
-<p align="center">
-  <img src="docs/images/touch-controls.svg" alt="RAtouch gesture map: tap and one-finger drag; two-finger pan and pinch; keyboard-free command deck and control groups" width="100%">
-</p>
-
-One finger keeps Red Alert's original left-button semantics: tap to select or order, drag to box-select. Two fingers own map movement and zoom, with an intent dead zone that prevents hand jitter from becoming camera motion. Long press supplies right-click. A real mouse or trackpad immediately restores pointer behavior and edge scrolling.
-
-The slim native command tab supplies the actions an iPad keyboard does not: one-shot Attack+, Move+, Add+, and Queue+ modifiers; groups 1–0; and a complete Controls sheet. Save, load, and resign stay in Red Alert's original Options menu, which accepts direct touch. The tab can sit on either safe-area edge for handedness, stays clear of the game sidebar, scales with Dynamic Type, and lets touches outside its controls pass through to the battlefield.
-
-The complete hotkey coverage matrix, overlay rules, and repeatable playtest loop live in [the input and gameplay refinement contract](docs/input-design.md).
 
 ## Project status
 
@@ -201,11 +255,11 @@ Start with the [input contract](docs/input-design.md), [build status](docs/build
 
 The next refinements are proof-gated:
 
-1. repeat campaign and skirmish playtests around selection, orders, scrolling, zoom, sidebar recovery, save/load, and lifecycle;
-2. tune gesture thresholds and pan direction on physical iPads, then verify Pencil, trackpad feel, haptics, accessibility, thermals, and audio interruption;
-3. keep refining the proven one-shot modifiers and control-group workflow from real campaign and skirmish sessions;
-4. refine native Mac settings, packaging, signing, notarization, and release compliance now that live in-mission quit autosave is proven;
-5. keep the public README visual, current, reproducible, and free of commercial assets.
+1. play on physical iPads and tune drag thresholds, pan direction, hold timing, Pencil, trackpad, haptics, accessibility, thermals, and audio interruption;
+2. keep running campaign and skirmish sessions around selection, orders, scrolling, zoom, command-deck recovery, control groups, save/load, and lifecycle;
+3. package the verified Mac build as a signed and notarized DMG with a clean first-run data-import experience;
+4. establish signed iPad device builds, then move through a focused beta and TestFlight before attempting App Store distribution;
+5. preserve reproducible tests, honest platform labels, and a public repository free of commercial assets.
 
 The full sequence and acceptance gates are in the [PRD and build plan](docs/prd-build-plan.md).
 
