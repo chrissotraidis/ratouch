@@ -1,6 +1,7 @@
 #include "ios_modifier.h"
 
 #include <cassert>
+#include <initializer_list>
 
 int main()
 {
@@ -21,6 +22,16 @@ int main()
     assert(state.Toggle(RatouchModifier::QueueMove) == RatouchModifier::None);
     assert(state.Toggle(RatouchModifier::QueueMove) == RatouchModifier::QueueMove);
     assert(state.Active() == RatouchModifier::None);
+
+    for (RatouchModifier modifier : {RatouchModifier::ForceAttack,
+                                     RatouchModifier::ForceMove,
+                                     RatouchModifier::AddSelection,
+                                     RatouchModifier::QueueMove}) {
+        assert(state.Toggle(modifier) == RatouchModifier::None);
+        assert(state.Active() == modifier);
+        assert(state.Cancel() == modifier);
+        assert(state.Active() == RatouchModifier::None);
+    }
 
     return 0;
 }

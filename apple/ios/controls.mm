@@ -1162,6 +1162,9 @@ void Toggle_One_Shot_Modifier(RatouchModifier modifier)
 
 - (void)showControls
 {
+    // A settings detour must not leave a tactical modifier waiting for the
+    // user's next map tap after they return to the game.
+    Ratouch_iOS_Cancel_One_Shot_Modifier();
     [self closePalette];
     RatouchControlsViewController* controls = [[RatouchControlsViewController alloc] init];
     controls.modalPresentationStyle = UIModalPresentationFormSheet;
