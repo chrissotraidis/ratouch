@@ -30,6 +30,7 @@ extern bool InMovie;
 
 void Focus_Loss();
 void Focus_Restore();
+void Focus_Refresh();
 void Process_Network();
 #ifdef RATOUCH_MACOS_BUILD
 void Ratouch_Mac_Prepare_Quit();
@@ -89,12 +90,17 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
             }
             PointerOwner.Observe_Pointer();
 #endif
-            {
+            if (Is_Gamepad_Active() || Is_Video_Relative_Mouse_Active()) {
                 float game_xrel = 0.0f;
                 float game_yrel = 0.0f;
                 Map_Video_Window_Delta(
                     static_cast<float>(event.motion.xrel), static_cast<float>(event.motion.yrel), game_xrel, game_yrel);
                 Move_Video_Mouse(game_xrel, game_yrel);
+            } else {
+                int game_x = 0;
+                int game_y = 0;
+                Map_Video_Window_Point(event.motion.x, event.motion.y, game_x, game_y);
+                Set_Video_Mouse(game_x, game_y);
             }
             break;
         case SDL_MOUSEBUTTONDOWN:
@@ -159,8 +165,6 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
                     Settings.Video.WindowHeight = event.window.data2;
                 }
                 break;
-            case SDL_WINDOWEVENT_EXPOSED:
-            case SDL_WINDOWEVENT_RESTORED:
             case SDL_WINDOWEVENT_FOCUS_GAINED:
                 Focus_Restore();
                 break;
@@ -168,6 +172,13 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
             case SDL_WINDOWEVENT_MINIMIZED:
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 Focus_Loss();
+                break;
+            case SDL_WINDOWEVENT_EXPOSED:
+            case SDL_WINDOWEVENT_RESTORED:
+                // Repaint and visibility notifications are not focus changes.
+                // Refresh the display without restarting legacy audio while
+                // the window is simply being uncovered.
+                Focus_Refresh();
                 break;
             }
             break;

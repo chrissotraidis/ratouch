@@ -79,6 +79,9 @@ unsigned int CCFocusMessage = WM_USER + 50; // Private message for receiving app
 void Focus_Loss(void)
 {
 #ifdef SDL_BUILD
+    if (!GameInFocus) {
+        return;
+    }
     GameInFocus = false;
     VQA_PauseAudio();
 #endif
@@ -89,6 +92,9 @@ void Focus_Loss(void)
 void Focus_Restore(void)
 {
 #ifdef SDL_BUILD
+    if (GameInFocus) {
+        return;
+    }
     GameInFocus = true;
     VQA_ResumeAudio();
 #endif
@@ -99,6 +105,11 @@ void Focus_Restore(void)
     VisiblePage.Clear();
     HiddenPage.Clear();
 #endif
+}
+
+void Focus_Refresh(void)
+{
+    Map.Flag_To_Redraw(true);
 }
 
 /***********************************************************************************************

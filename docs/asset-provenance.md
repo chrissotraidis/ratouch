@@ -27,6 +27,8 @@ This document records the non-payload facts used to reproduce the first-playable
 
 Known Steam filenames are accepted only when both byte size and SHA-256 match this table. An otherwise structurally valid, unknown MIX can be imported under its uppercase filename, but it is not identified as the complete Steam layout. Destination collisions reject the transaction before the live asset directory is replaced.
 
+The original engine also resolves a base-disc archive at root `MAIN.MIX`. After validating the imported tree, RAtouch creates a hard-link alias from the first valid base archive—preferring `allied/MAIN.MIX`—to root `MAIN.MIX`. The files share one inode, so this does not duplicate the 454 MB payload. This compatibility alias is generated inside user-owned Application Support data, is not added to provenance as a second source asset, and is recreated for older nested-only imports at cold launch.
+
 ## Installed receipt
 
 The shared Apple importer writes `provenance.json` beside the imported asset tree in Application Support on macOS and iPadOS. That runtime receipt contains the detected source (`Steam` for a complete known set), source ID (`2229840`), import timestamp, and one entry per source file with its mapped path, size, and hash.

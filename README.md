@@ -19,6 +19,7 @@
   <a href="#ratouch-and-openra">RAtouch and OpenRA</a> ·
   <a href="#touch-is-the-product">Touch controls</a> ·
   <a href="#availability">Availability</a> ·
+  <a href="docs/remaining-work.md">Remaining work</a> ·
   <a href="#install-and-run">Build</a> ·
   <a href="#bring-your-own-data">Game data</a> ·
   <a href="docs/engineering-record-2026-07-21.md">Build record</a> ·
@@ -59,6 +60,8 @@ The result is not a mobile remake and not a layer of permanent virtual keyboard 
 [OpenRA](https://www.openra.net/about/) is a mature, cross-platform reimagining of classic RTS games. It modernizes the interface and gameplay with features such as attack-move, stances, fog of war, veterancy, revised production, multiplayer balance, replays, observers, and integrated online play.
 
 RAtouch takes a different path.
+
+RAtouch is a fork of [Vanilla Conquer](https://github.com/TheAssemblyArmada/Vanilla-Conquer), not a fork of OpenRA. That distinction matters: Vanilla Conquer aims to preserve the original executable behavior, while OpenRA explicitly evolves the rules and interface. Upstream Vanilla Conquer also still documents OpenAL as a macOS dependency and does not support repackaged Steam/Ultimate Collection data. [Apple deprecated OpenAL](https://developer.apple.com/videos/play/wwdc2019/508/) in macOS 10.15, so RAtouch replaces that dependency with one SDL2 mixer and adds a validated compatibility path for the known Steam 2229840 archive layout.
 
 | | RAtouch | OpenRA |
 | --- | --- | --- |
@@ -109,7 +112,7 @@ The simulation is shared. The control surface is designed for the device in fron
 
 | Native apps | Touch evidence | Runtime proof | Public boundary |
 | --- | --- | --- | --- |
-| Apple-silicon macOS app and arm64 iPad Simulator app | Tap, drag, hold, two-touch pinch/reset, command deck, control groups, pointer, and keyboard exercised in live missions | 24 automated tests, 58 documented iPad Simulator checks, and 15 Mac runtime checks | Original project artwork only; commercial data stays local and ignored |
+| Apple-silicon macOS app and arm64 iPad Simulator app | Tap, drag, hold, two-touch pinch/reset, command deck, control groups, pointer, and keyboard exercised in live missions | 24 automated tests plus documented Mac and iPad Simulator playtests | Original project artwork only; commercial data stays local and ignored |
 
 The first end-to-end build was completed in a 20-hour proof-gated session: implementation, repeated campaign and skirmish play, input tuning, lifecycle checks, crash repair, documentation, and publication. Read the concise [engineering record](docs/engineering-record-2026-07-21.md) or the complete [runtime evidence log](docs/build-status.md).
 
@@ -143,23 +146,26 @@ RAtouch is an active alpha, not a packaged public release.
 
 | Area | Current evidence |
 | --- | --- |
-| Gameplay | Intro, menus, Allied campaign, briefing, mission play, bases-on skirmish construction and placement, expansion menus, save/load, and lifecycle autosave exercised with legally supplied Steam 2229840 data |
+| Gameplay | Intro, menus, Allied campaign, briefing, mission play, MCV deployment, two-stage structure production and placement, expansion menus, save/load, and lifecycle autosave exercised with legally supplied Steam 2229840 data |
 | iPad input | Direct selection and orders, two-finger pan, pinch zoom, long-press right-click, control groups, keyboard-free commands, hardware keyboard, pointer, and touch settings exercised in Simulator |
-| macOS input | Retina-aware pointer mapping, aligned clicks and software cursor, configurable 25–200% speed, edge scrolling, native window/fullscreen, menus, and clean quit autosave |
-| Data safety | Native folder/file/ISO picker, structural validation, known-file hashes, atomic import, provenance receipt, staged replacement, and save export |
-| Audio and UI | SDL2 game/movie audio, native command deck, Dynamic Type controls, display and volume settings, and bundled license views |
+| macOS input | Retina-aware absolute pointer synchronization, configurable 25–200% speed, edge scrolling, native window/fullscreen, menus, and clean quit autosave |
+| Data safety | Native folder/file/ISO picker, structural validation, known-file hashes, atomic import, zero-copy Steam archive compatibility, provenance receipt, staged replacement, and save export |
+| Audio and UI | One SDL2 game/movie mixer, underrun regression coverage, focus-safe pause/resume, native command deck, Dynamic Type controls, display and volume settings, and bundled license views |
 | Automated proof | 24 tests, arm64 iPad Simulator build, macOS build, and public-repository hygiene verification |
 
 See the [20-hour engineering record](docs/engineering-record-2026-07-21.md), exact session evidence in [build status](docs/build-status.md), and the maintained [input contract](docs/input-design.md).
 
 GitHub-hosted jobs are configured, but the latest runs were stopped before checkout because of an account billing/spending-limit restriction. The commands below are the same local gates used for the current passing result; hosted-runner status is not presented as source validation until those jobs can start.
 
-### Still to verify
+### Verification queue
 
-- Physical iPad feel: sustained multitouch, Pencil, trackpad, haptics, accessibility, thermals, and audio interruption.
-- Signed device builds, TestFlight, App Store packaging, and release compliance.
-- Intel Mac or universal-binary packaging, signing, and notarization.
-- Real-file validation for every declared non-Steam import layout.
+The authoritative open checklist is [Remaining work](docs/remaining-work.md).
+The next locally executable case is `AUDIO-01`: complete a 30-minute
+real-speaker session across music, EVA speech, construction, combat, Options,
+hide/restore, and save/load.
+The same document separates later gameplay, real-file import, physical-device,
+packaging, and human-owned release gates so Simulator proof is never mistaken
+for device or distribution sign-off.
 
 Simulator evidence is reported as Simulator evidence; it is not presented as physical-device certification.
 
@@ -191,6 +197,13 @@ cmake --build build/ratouch-macos --parallel
 ctest --test-dir build/ratouch-macos --output-on-failure
 python3 scripts/verify-public-repo.py
 open build/ratouch-macos/RAtouch.app
+```
+
+For the repeatable gameplay-focused regression and live scenario sequence, see
+the [gameplay compatibility loop](docs/gameplay-compatibility.md):
+
+```sh
+./scripts/run-gameplay-loop.sh quick
 ```
 
 The app is produced at `build/ratouch-macos/RAtouch.app` and stores imported data, settings, and saves under `~/Library/Application Support/Ratouch/vanillara`. On a clean launch, its native picker accepts legally acquired MIX files, an ISO, or a folder and installs validated data through the same transactional importer used on iPadOS.
@@ -237,7 +250,7 @@ Issues and focused pull requests are welcome, especially for reproducible input 
 3. describe whether input evidence came from Simulator or physical hardware;
 4. do not attach or commit commercial game assets, derived screenshots, archives, or saves.
 
-Start with the [input contract](docs/input-design.md), [build status](docs/build-status.md), and [PRD/build plan](docs/prd-build-plan.md). Security-sensitive reports should avoid including game data or personal save files.
+Start with [Remaining work](docs/remaining-work.md), the [input contract](docs/input-design.md), and [build status](docs/build-status.md). Security-sensitive reports should avoid including game data or personal save files.
 
 ### Repository guide
 
@@ -261,7 +274,9 @@ The next refinements are proof-gated:
 4. establish signed iPad device builds, then move through a focused beta and TestFlight before attempting App Store distribution;
 5. preserve reproducible tests, honest platform labels, and a public repository free of commercial assets.
 
-The full sequence and acceptance gates are in the [PRD and build plan](docs/prd-build-plan.md).
+The live open queue is in [Remaining work](docs/remaining-work.md). The original
+product sequence and acceptance rationale remain in the
+[PRD and build plan](docs/prd-build-plan.md).
 
 ## Foundation and license
 
