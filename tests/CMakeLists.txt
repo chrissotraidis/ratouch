@@ -71,6 +71,32 @@ if(SDL_AUDIO)
     add_dependencies(tests test_soundio_sdl2)
 endif()
 
+# Fast, asset-free gates for RAtouch's gameplay boundary. These protect input
+# translation, presentation coordinates, lifecycle/save policy, data
+# compatibility, audio streaming, and the score-screen animation regression.
+# Red Alert's simulation remains engine-owned and is exercised by the live loop.
+set_tests_properties(
+    ios_modifier
+    wwtouch
+    video_geometry
+    wsa_sizing
+    savegame_version
+    ratouch_gameplay
+    ratouch_settings
+    iso9660
+    mix_validator
+    asset_manifest
+    PROPERTIES LABELS "ratouch_gameplay_loop"
+)
+
+if(SDL2)
+    set_tests_properties(ios_lifecycle PROPERTIES LABELS "ratouch_gameplay_loop")
+endif()
+
+if(SDL_AUDIO)
+    set_tests_properties(soundio_sdl2 PROPERTIES LABELS "ratouch_gameplay_loop")
+endif()
+
 add_executable(test_miscasm miscasm.cpp)
 target_include_directories(test_miscasm PUBLIC .. ../common)
 target_compile_definitions(test_miscasm PUBLIC TRUE_FALSE_DEFINED ENGLISH $<$<CONFIG:DEBUG>:_DEBUG> _WINDOWS _CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE WINSOCK_IPX)

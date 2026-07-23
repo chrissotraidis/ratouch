@@ -13,7 +13,53 @@
 
 namespace
 {
-BOOL Has_Required_Data_At_Root(NSURL* root)
+void Set_Import_Error(NSError** reported_error, NSInteger code, NSString* description)
+{
+    if (reported_error != nullptr && *reported_error == nil) {
+        *reported_error = [NSError errorWithDomain:@"RatouchImport"
+                                               code:code
+                                           userInfo:@{NSLocalizedDescriptionKey : description}];
+    }
+}
+
+BOOL Ensure_Runtime_Main_Mix(NSURL* root, NSError** reported_error)
+{
+    NSFileManager* files = [NSFileManager defaultManager];
+    NSURL* runtime_main = [root URLByAppendingPathComponent:@"MAIN.MIX"];
+    std::string validation_error;
+    if (Ratouch_Validate_MIX(runtime_main.path.fileSystemRepresentation, validation_error)) {
+        return YES;
+    }
+
+    if ([files fileExistsAtPath:runtime_main.path]) {
+        Set_Import_Error(reported_error, 7, @"MAIN.MIX exists but is not a valid MIX archive.");
+        return NO;
+    }
+
+    NSArray<NSString*>* base_discs = @[@"allied/MAIN.MIX", @"soviet/MAIN.MIX"];
+    for (NSString* relative_path in base_discs) {
+        NSURL* source = [root URLByAppendingPathComponent:relative_path];
+        validation_error.clear();
+        if (!Ratouch_Validate_MIX(source.path.fileSystemRepresentation, validation_error)) {
+            continue;
+        }
+
+        NSError* link_error = nil;
+        if ([files linkItemAtURL:source toURL:runtime_main error:&link_error]) {
+            return YES;
+        }
+        Set_Import_Error(reported_error,
+                         7,
+                         [NSString stringWithFormat:@"Could not prepare MAIN.MIX for gameplay: %@",
+                                                    link_error.localizedDescription]);
+        return NO;
+    }
+
+    Set_Import_Error(reported_error, 7, @"A valid base-game MAIN.MIX archive was not found.");
+    return NO;
+}
+
+BOOL Has_Required_Data_At_Root(NSURL* root, NSError** reported_error = nullptr)
 {
     NSURL* core = [root URLByAppendingPathComponent:@"REDALERT.MIX"];
     std::string validation_error;
@@ -21,15 +67,12 @@ BOOL Has_Required_Data_At_Root(NSURL* root)
         return NO;
     }
 
-    NSArray<NSString*>* main_paths = @[@"MAIN.MIX", @"allied/MAIN.MIX", @"soviet/MAIN.MIX"];
-    for (NSString* relative_path in main_paths) {
-        NSURL* main = [root URLByAppendingPathComponent:relative_path];
-        validation_error.clear();
-        if (Ratouch_Validate_MIX(main.path.fileSystemRepresentation, validation_error)) {
-            return YES;
-        }
+    if (!Ensure_Runtime_Main_Mix(root, reported_error)) {
+        return NO;
     }
-    return NO;
+    validation_error.clear();
+    NSURL* main = [root URLByAppendingPathComponent:@"MAIN.MIX"];
+    return Ratouch_Validate_MIX(main.path.fileSystemRepresentation, validation_error);
 }
 
 NSURL* Asset_Parent()
@@ -40,15 +83,6 @@ NSURL* Asset_Parent()
 NSURL* Pending_Asset_Root()
 {
     return [Asset_Parent() URLByAppendingPathComponent:@".pending-game-data" isDirectory:YES];
-}
-
-void Set_Import_Error(NSError** reported_error, NSInteger code, NSString* description)
-{
-    if (reported_error != nullptr && *reported_error == nil) {
-        *reported_error = [NSError errorWithDomain:@"RatouchImport"
-                                               code:code
-                                           userInfo:@{NSLocalizedDescriptionKey : description}];
-    }
 }
 
 bool Read_Asset_Identity(NSURL* url, RatouchAssetIdentity& identity, NSError** reported_error)
@@ -215,7 +249,7 @@ NSUInteger Import_Asset_URLs_To_Root(NSArray<NSURL*>* urls, NSURL* destination, 
         ++imported;
     }
 
-    if (!Has_Required_Data_At_Root(payload)) {
+    if (!Has_Required_Data_At_Root(payload, reported_error)) {
         Set_Import_Error(reported_error,
                          7,
                          @"The selection must contain valid REDALERT.MIX and base-game MAIN.MIX data.");
