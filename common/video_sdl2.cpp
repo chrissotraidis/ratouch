@@ -472,6 +472,11 @@ void Set_Video_Cursor_Clip(bool clipped)
         const SDL_bool was_relative = SDL_GetRelativeMouseMode();
         SDL_bool wants_relative = SDL_FALSE;
 
+#ifdef IOS_BUILD
+        // iPad trackpads expose an absolute system pointer. Relative mode
+        // decouples the software game cursor from that visible pointer.
+        SDL_SetWindowGrab(window, SDL_FALSE);
+#else
         if (Settings.Video.Windowed) {
             SDL_SetWindowGrab(window, SDL_FALSE);
         } else {
@@ -480,6 +485,7 @@ void Set_Video_Cursor_Clip(bool clipped)
                 ? SDL_TRUE
                 : SDL_FALSE;
         }
+#endif
 
         if (SDL_SetRelativeMouseMode(wants_relative) < 0) {
             DBG_ERROR("Raw input not supported, disabling.");
@@ -487,6 +493,7 @@ void Set_Video_Cursor_Clip(bool clipped)
             return;
         }
 
+#ifndef IOS_BUILD
         if (Settings.Mouse.RawInput && was_relative != wants_relative) {
             if (wants_relative == SDL_TRUE) {
                 int window_x = 0;
@@ -505,6 +512,9 @@ void Set_Video_Cursor_Clip(bool clipped)
                 SDL_WarpMouseInWindow(window, static_cast<int>(window_x), static_cast<int>(window_y));
             }
         }
+#else
+        (void)was_relative;
+#endif
     }
 }
 
@@ -530,6 +540,12 @@ void Move_Video_Mouse(float xrel, float yrel)
 
 void Get_Video_Mouse(int& x, int& y)
 {
+#ifdef IOS_BUILD
+    // Both direct touch and absolute pointer events update the cached game
+    // position. SDL's mouse state does not move for direct touches.
+    x = hwcursor.X;
+    y = hwcursor.Y;
+#else
     if (Keyboard->Is_Gamepad_Active() || Is_Video_Relative_Mouse_Active()) {
         x = hwcursor.X;
         y = hwcursor.Y;
@@ -539,11 +555,16 @@ void Get_Video_Mouse(int& x, int& y)
         SDL_GetMouseState(&window_x, &window_y);
         Map_Video_Window_Point(window_x, window_y, x, y);
     }
+#endif
 }
 
 bool Is_Video_Relative_Mouse_Active()
 {
+#ifdef IOS_BUILD
+    return false;
+#else
     return Video_Use_Relative_Mouse(Settings.Mouse.RawInput, Settings.Video.Windowed);
+#endif
 }
 
 void Set_Video_Mouse(int x, int y)

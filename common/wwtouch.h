@@ -119,6 +119,7 @@ private:
         Idle,
         Pending,
         Dragging,
+        FinishingDrag,
         LongPressed,
         Pan,
         DrainingPan,
@@ -137,6 +138,8 @@ private:
     float DownY = 0.0f;
     float LastX = 0.0f;
     float LastY = 0.0f;
+    float DeferredReleaseX = 0.0f;
+    float DeferredReleaseY = 0.0f;
     float Finger1X = 0.0f;
     float Finger1Y = 0.0f;
     float Finger2X = 0.0f;

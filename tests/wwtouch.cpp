@@ -39,6 +39,8 @@ int main()
         scroll.Add(2, 1);
         assert(scroll.Peek(dx, dy));
         assert(dx == 5 && dy == -3);
+        assert(scroll.Peek(dx, dy));
+        assert(dx == 5 && dy == -3);
         assert(scroll.Consume(dx, dy));
         assert(dx == 5 && dy == -3);
         assert(!scroll.Consume(dx, dy));
@@ -118,11 +120,12 @@ int main()
         Expect(actions,
                {WWTouchActionType::CursorMove,
                 WWTouchActionType::LeftDown,
-                WWTouchActionType::CursorMove,
-                WWTouchActionType::LeftUp});
+                WWTouchActionType::CursorMove});
         assert(actions[0].X == 20 && actions[0].Y == 30);
         assert(actions[2].X == 40 && actions[2].Y == 50);
-        assert(actions[3].X == 40 && actions[3].Y == 50);
+        const std::vector<WWTouchAction> release = touch.Poll(81);
+        Expect(release, {WWTouchActionType::LeftUp});
+        assert(release[0].X == 40 && release[0].Y == 50);
     }
     {
         WWTouchState touch;
@@ -130,7 +133,18 @@ int main()
         Expect(touch.Finger_Motion(1, 27, 30, 20), {});
         Expect(touch.Finger_Motion(1, 28, 30, 30),
                {WWTouchActionType::CursorMove, WWTouchActionType::LeftDown, WWTouchActionType::CursorMove});
-        Expect(touch.Finger_Up(1, 40, 40, 60), {WWTouchActionType::LeftUp});
+        const std::vector<WWTouchAction> actions = touch.Finger_Up(1, 40, 40, 60);
+        Expect(actions, {WWTouchActionType::CursorMove});
+        assert(actions[0].X == 40 && actions[0].Y == 40);
+        Expect(touch.Poll(61), {WWTouchActionType::LeftUp});
+    }
+    {
+        WWTouchState touch;
+        touch.Finger_Down(1, 20, 30, 0);
+        touch.Finger_Motion(1, 28, 30, 30);
+        touch.Finger_Up(1, 40, 40, 60);
+        Expect(touch.Cancel_All(), {WWTouchActionType::LeftUp});
+        Expect(touch.Poll(61), {});
     }
     {
         WWTouchState touch;
@@ -181,6 +195,22 @@ int main()
         assert(actions[0].Steps == 1);
         Expect(touch.Finger_Up(1, 5, 10, 30), {WWTouchActionType::PanEnd});
         Expect(touch.Finger_Up(2, 35, 10, 35), {});
+    }
+    {
+        WWTouchState touch;
+        touch.Finger_Down(1, 10, 10, 0);
+        touch.Finger_Down(2, 110, 10, 10);
+        Expect(touch.Finger_Motion(1, 26, 10, 20), {});
+        const std::vector<WWTouchAction> actions = touch.Finger_Motion(2, 114, 10, 25);
+        Expect(actions, {WWTouchActionType::PanMove});
+        assert(actions[0].DeltaX == 10 && actions[0].DeltaY == 0);
+    }
+    {
+        WWTouchState touch;
+        touch.Finger_Down(1, 10, 10, 0);
+        touch.Finger_Down(2, 110, 10, 10);
+        Expect(touch.Finger_Motion(1, 30, 10, 20), {});
+        Expect(touch.Finger_Motion(2, 110, 10, 25), {WWTouchActionType::ZoomStep});
     }
     {
         ExpectCompoundPan(10, 0);

@@ -197,6 +197,7 @@ extern MFCD* MoviesMix;
 extern MFCD* Movies2Mix;
 extern MFCD* GeneralMix;
 extern MFCD* ScoreMix;
+extern MFCD* SoundsMix;
 extern MFCD* MainMix;
 extern MFCD* ConquerMix;
 extern ThemeClass Theme;

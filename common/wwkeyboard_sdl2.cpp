@@ -58,7 +58,6 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
     SDL_Event event;
 
 #ifdef IOS_BUILD
-    TouchScroll.Clear();
     MouseMovieInput.Begin_Poll(InMovie);
     TouchMovieInput.Begin_Poll(InMovie);
     Handle_Touch_Actions(Touch.Poll(SDL_GetTicks64()));
@@ -146,6 +145,7 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
             } else {
                 inside_presentation = Is_Video_Window_Point_In_Presentation(event.button.x, event.button.y);
                 Map_Video_Window_Point(event.button.x, event.button.y, x, y);
+                Set_Video_Mouse(x, y);
             }
 
             const bool released = event.type == SDL_MOUSEBUTTONUP;
@@ -219,6 +219,7 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
         case SDL_APP_WILLENTERBACKGROUND:
         case SDL_APP_DIDENTERBACKGROUND:
             Handle_Touch_Actions(Touch.Cancel_All());
+            TouchScroll.Clear();
             Focus_Loss();
             break;
         case SDL_APP_WILLENTERFOREGROUND:
@@ -395,19 +396,19 @@ void WWKeyboardClassSDL2::Handle_Controller_Button_Event(const SDL_ControllerBut
         break;
     case SDL_CONTROLLER_BUTTON_DPAD_UP:
         keyboardPress = true;
-        scancode = SDL_SCANCODE_1;
+        scancode = SDL_SCANCODE_UP;
         break;
     case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
         keyboardPress = true;
-        scancode = SDL_SCANCODE_2;
+        scancode = SDL_SCANCODE_RIGHT;
         break;
     case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
         keyboardPress = true;
-        scancode = SDL_SCANCODE_3;
+        scancode = SDL_SCANCODE_DOWN;
         break;
     case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
         keyboardPress = true;
-        scancode = SDL_SCANCODE_4;
+        scancode = SDL_SCANCODE_LEFT;
         break;
     default:
         break;
@@ -455,6 +456,33 @@ bool WWKeyboardClassSDL2::Consume_Analog_Scroll(unsigned char& direction, int& p
         return direction != SDIR_NONE;
     }
 #endif
+    const bool left = Down(VK_LEFT);
+    const bool right = Down(VK_RIGHT);
+    const bool up = Down(VK_UP);
+    const bool down = Down(VK_DOWN);
+    if (left != right || up != down) {
+        const int dx = static_cast<int>(right) - static_cast<int>(left);
+        const int dy = static_cast<int>(down) - static_cast<int>(up);
+        if (dx > 0 && dy < 0) {
+            direction = SDIR_NE;
+        } else if (dx > 0 && dy > 0) {
+            direction = SDIR_SE;
+        } else if (dx < 0 && dy < 0) {
+            direction = SDIR_NW;
+        } else if (dx < 0 && dy > 0) {
+            direction = SDIR_SW;
+        } else if (dx > 0) {
+            direction = SDIR_E;
+        } else if (dx < 0) {
+            direction = SDIR_W;
+        } else if (dy < 0) {
+            direction = SDIR_N;
+        } else {
+            direction = SDIR_S;
+        }
+        pixel_distance = 0;
+        return true;
+    }
     if (AnalogScrollActive) {
         direction = ScrollDirection;
         pixel_distance = 0;

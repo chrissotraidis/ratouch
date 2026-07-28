@@ -209,7 +209,7 @@ static void Prime_Local_Disc_Path()
             std::string main_mix = Paths.Concatenate_Paths(path.c_str(), "MAIN.MIX");
             if (RawFileClass(main_mix.c_str()).Is_Available()) {
                 path += PathsClass::SEP;
-                CDFileClass::Add_Search_Drive(path.c_str());
+                CDFileClass::Add_Search_Drive(path.c_str(), true);
                 return;
             }
         }
@@ -681,6 +681,13 @@ int main(int argc, char* argv[])
         do {
             Keyboard->Check();
         } while (ReadyToQuit == 1);
+#endif
+
+#ifdef IOS_BUILD
+        // Returning from SDL_main tears down the game window while leaving the
+        // UIKit application alive on a black screen. Exit only after the normal
+        // settings, video, and audio cleanup above has completed.
+        exit(EXIT_SUCCESS);
 #endif
 
         return (EXIT_SUCCESS);

@@ -11,6 +11,20 @@ target_include_directories(test_wwtouch PUBLIC ../common)
 add_test(NAME wwtouch COMMAND ${TARGET_SYSTEM_EMULATOR} $<TARGET_FILE:test_wwtouch>)
 add_dependencies(tests test_wwtouch)
 
+add_executable(test_cdfile_search cdfile_search.cpp)
+target_include_directories(test_cdfile_search PUBLIC .. ../common)
+target_compile_definitions(test_cdfile_search PUBLIC ${VANILLA_DEFS})
+target_link_libraries(test_cdfile_search PUBLIC common ${STATIC_LIBS})
+add_test(NAME cdfile_search COMMAND ${TARGET_SYSTEM_EMULATOR} $<TARGET_FILE:test_cdfile_search>)
+add_dependencies(tests test_cdfile_search)
+
+add_executable(test_mix_backing mix_backing.cpp)
+target_include_directories(test_mix_backing PUBLIC .. ../common)
+target_compile_definitions(test_mix_backing PUBLIC ${VANILLA_DEFS})
+target_link_libraries(test_mix_backing PUBLIC common ${STATIC_LIBS})
+add_test(NAME mix_backing COMMAND ${TARGET_SYSTEM_EMULATOR} $<TARGET_FILE:test_mix_backing>)
+add_dependencies(tests test_mix_backing)
+
 add_executable(test_video_geometry video_geometry.cpp ../common/video_geometry.cpp)
 target_include_directories(test_video_geometry PUBLIC ../common)
 add_test(NAME video_geometry COMMAND ${TARGET_SYSTEM_EMULATOR} $<TARGET_FILE:test_video_geometry>)
@@ -78,6 +92,8 @@ endif()
 set_tests_properties(
     ios_modifier
     wwtouch
+    cdfile_search
+    mix_backing
     video_geometry
     wsa_sizing
     savegame_version

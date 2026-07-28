@@ -167,11 +167,17 @@ char const* RawFileClass::Set_Name(char const* filename)
     }
 
     /*
-    ** If we ever save this file, make sure we save it in lowercase but
-    ** if Resolve_File finds an actual file on-disk we use the real name
-    ** instead.
+    ** If we ever save this file, make sure relative legacy filenames are
+    ** lowercase. Preserve absolute POSIX paths because their directory
+    ** components may be case-sensitive.
     */
+#if defined(_WIN32)
     _strlwr(Filename);
+#else
+    if (Filename[0] != '/') {
+        _strlwr(Filename);
+    }
+#endif
 
     /*
     ** Try to locate an existing file ignoring case, updates Filename
@@ -271,7 +277,7 @@ int RawFileClass::Open(int rights)
             break;
 
         case READ | WRITE:
-            Handle = raw_fopen(Filename, "rwb");
+            Handle = raw_fopen(Filename, "r+b");
             break;
         }
 

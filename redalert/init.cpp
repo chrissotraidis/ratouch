@@ -2381,8 +2381,8 @@ static void Init_Secondary_Mixfiles(void)
     **	These are sound card specific, but the install program would have
     **	copied the correct versions to the hard drive.
     */
-    new MFCD("SPEECH.MIX", &FastKey);  // Never cached.
-    new MFCD("SOUNDS.MIX", &FastKey);  // Cached.
+    new MFCD("SPEECH.MIX", &FastKey); // Never cached.
+    SoundsMix = new MFCD("SOUNDS.MIX", &FastKey);
     new MFCD("RUSSIAN.MIX", &FastKey); // Cached.
     new MFCD("ALLIES.MIX", &FastKey);  // Cached.
 }

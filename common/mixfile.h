@@ -92,6 +92,11 @@ public:
         return Count;
     }
 
+    char const* Backing_Filename() const
+    {
+        return BackingFilename;
+    }
+
 private:
     static MixFileClass* Finder(char const* filename);
     // int Offset(int crc, int * size = 0) const;	// ST - 5/10/2019
@@ -143,6 +148,12 @@ private:
     **	Start of raw data in within the mixfile.
     */
     int DataStart;
+
+    /*
+    **	Physical file that contains this mix. This differs from Filename for
+    **	nested mixes and must remain stable if the search path later changes.
+    */
+    char* BackingFilename;
 
     /*
     **	Points to the file header control block array. Each file in the mixfile will
@@ -208,6 +219,9 @@ template <class T, class TCRC> MixFileClass<T, TCRC>::~MixFileClass(void)
     if (Filename) {
         free((char*)Filename);
     }
+    if (BackingFilename) {
+        free(BackingFilename);
+    }
     if (Data != NULL && IsAllocated) {
         delete[] static_cast<char*>(Data);
         IsAllocated = false;
@@ -251,6 +265,7 @@ MixFileClass<T, TCRC>::MixFileClass(char const* filename)
     , Count(0)
     , DataSize(0)
     , DataStart(0)
+    , BackingFilename(0)
     , HeaderBuffer(0)
     , Data(0)
 {
@@ -271,6 +286,12 @@ MixFileClass<T, TCRC>::MixFileClass(char const* filename)
 
     T file(filename); // Working file object.
     Filename = strdup(file.File_Name());
+    MixFileClass* parent = NULL;
+    if (Offset(filename, NULL, &parent) && parent != NULL) {
+        BackingFilename = strdup(parent->Backing_Filename());
+    } else {
+        BackingFilename = strdup(file.File_Name());
+    }
     FileStraw fstraw(file);
     Straw* straw = &fstraw;
 
@@ -373,6 +394,7 @@ MixFileClass<T, TCRC>::MixFileClass(char const* filename, PKey const* key)
     , Count(0)
     , DataSize(0)
     , DataStart(0)
+    , BackingFilename(0)
     , HeaderBuffer(0)
     , Data(0)
 {
@@ -393,6 +415,12 @@ MixFileClass<T, TCRC>::MixFileClass(char const* filename, PKey const* key)
 
     T file(filename); // Working file object.
     Filename = strdup(file.File_Name());
+    MixFileClass* parent = NULL;
+    if (Offset(filename, NULL, &parent) && parent != NULL) {
+        BackingFilename = strdup(parent->Backing_Filename());
+    } else {
+        BackingFilename = strdup(file.File_Name());
+    }
     FileStraw fstraw(file);
     // Removes dependency on redalert global CryptRandom as it is only used to make mix files, not decrypt them.
     RandomStraw fakernd;

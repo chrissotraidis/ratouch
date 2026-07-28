@@ -263,7 +263,7 @@ int CDFileClass::Set_Search_Drives(char* pathlist)
  * HISTORY:                                                                                    *
  *    5/22/96 10:12AM ST : Created                                                             *
  *=============================================================================================*/
-void CDFileClass::Add_Search_Drive(const char* path)
+void CDFileClass::Add_Search_Drive(const char* path, bool first)
 {
     SearchDriveType* srch; // Working pointer to path object.
     /*
@@ -280,7 +280,10 @@ void CDFileClass::Add_Search_Drive(const char* path)
     /*
     **	Attach this path record to the end of the path chain.
     */
-    if (!First) {
+    if (first) {
+        srch->Next = First;
+        First = srch;
+    } else if (!First) {
         First = srch;
     } else {
         SearchDriveType* chain = First;

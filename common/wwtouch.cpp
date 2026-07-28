@@ -201,11 +201,6 @@ std::vector<WWTouchAction> WWTouchState::Finger_Motion(int64_t id, float x, floa
     } else if (CurrentPhase == Phase::Pan) {
         const float centerX = (Finger1X + Finger2X) * 0.5f;
         const float centerY = (Finger1Y + Finger2Y) * 0.5f;
-        const float rawDeltaX = centerX - RawPanX;
-        const float rawDeltaY = centerY - RawPanY;
-        PanTravel += std::sqrt(rawDeltaX * rawDeltaX + rawDeltaY * rawDeltaY);
-        RawPanX = centerX;
-        RawPanY = centerY;
 
         // SDL delivers each finger's motion separately. Sampling pan and pinch
         // after both fingers move prevents half of a translation from looking
@@ -214,34 +209,40 @@ std::vector<WWTouchAction> WWTouchState::Finger_Motion(int64_t id, float x, floa
             return actions;
         }
 
+        const float rawDeltaX = centerX - RawPanX;
+        const float rawDeltaY = centerY - RawPanY;
+        const float centerTravel = std::sqrt(rawDeltaX * rawDeltaX + rawDeltaY * rawDeltaY);
+        PanTravel += centerTravel;
+        RawPanX = centerX;
+        RawPanY = centerY;
+
         const float centerDeltaX = centerX - PanX;
         const float centerDeltaY = centerY - PanY;
-        if (PanTravel >= Settings.TwoFingerTapMovement) {
-            PanHasMoved = true;
-        }
-        if (PanHasMoved && (std::fabs(centerDeltaX) > 0.01f || std::fabs(centerDeltaY) > 0.01f)) {
-            actions.push_back(Action(WWTouchActionType::PanMove, centerX, centerY, centerDeltaX, centerDeltaY));
-        }
-        if (PanHasMoved) {
-            PanX = centerX;
-            PanY = centerY;
-        }
-
         const float dx = Finger1X - Finger2X;
         const float dy = Finger1Y - Finger2Y;
         const float distance = std::sqrt(dx * dx + dy * dy);
         PinchTravel = std::fmax(PinchTravel, std::fabs(distance - InitialPinchDistance));
-        if (PinchDistance > 1.0f) {
+        if (!PanHasMoved && PinchDistance > 1.0f) {
             const float ratio = distance / PinchDistance;
-            if (ratio > 1.0f + Settings.PinchStepRatio) {
+            const float pinchStep = std::fabs(distance - PinchDistance);
+            const bool pinchDominates = PanChangedZoom || pinchStep > centerTravel * 1.5f;
+            if (pinchDominates && ratio > 1.0f + Settings.PinchStepRatio) {
                 actions.push_back(Action(WWTouchActionType::ZoomStep, centerX, centerY, 0.0f, 0.0f, 1));
                 PanChangedZoom = true;
                 PinchDistance = distance;
-            } else if (ratio < 1.0f - Settings.PinchStepRatio) {
+            } else if (pinchDominates && ratio < 1.0f - Settings.PinchStepRatio) {
                 actions.push_back(Action(WWTouchActionType::ZoomStep, centerX, centerY, 0.0f, 0.0f, -1));
                 PanChangedZoom = true;
                 PinchDistance = distance;
             }
+        }
+        if (!PanChangedZoom && PanTravel >= Settings.TwoFingerTapMovement) {
+            PanHasMoved = true;
+        }
+        if (PanHasMoved && (std::fabs(centerDeltaX) > 0.01f || std::fabs(centerDeltaY) > 0.01f)) {
+            actions.push_back(Action(WWTouchActionType::PanMove, centerX, centerY, centerDeltaX, centerDeltaY));
+            PanX = centerX;
+            PanY = centerY;
         }
         Finger1Moved = false;
         Finger2Moved = false;
@@ -267,17 +268,27 @@ std::vector<WWTouchAction> WWTouchState::Finish_Finger(int64_t id, float x, floa
             actions.push_back(Action(WWTouchActionType::LeftDown, DownX, DownY));
             if (releasedBeyondDragThreshold) {
                 actions.push_back(Action(WWTouchActionType::CursorMove, x, y));
+                DeferredReleaseX = x;
+                DeferredReleaseY = y;
+                CurrentPhase = Phase::FinishingDrag;
+                HasTwoFingerTap = false;
+                return actions;
             }
-            actions.push_back(Action(WWTouchActionType::LeftUp,
-                                     releasedBeyondDragThreshold ? x : DownX,
-                                     releasedBeyondDragThreshold ? y : DownY));
+            actions.push_back(Action(WWTouchActionType::LeftUp, DownX, DownY));
         }
         HasTwoFingerTap = false;
         break;
     case Phase::Dragging:
-        actions.push_back(Action(WWTouchActionType::LeftUp, x, y));
+        if (x != LastX || y != LastY) {
+            actions.push_back(Action(WWTouchActionType::CursorMove, x, y));
+        }
+        DeferredReleaseX = x;
+        DeferredReleaseY = y;
+        CurrentPhase = Phase::FinishingDrag;
         HasTwoFingerTap = false;
-        break;
+        return actions;
+    case Phase::FinishingDrag:
+        return actions;
     case Phase::Pan:
         {
             const float oldCenterX = (Finger1X + Finger2X) * 0.5f;
@@ -351,6 +362,11 @@ std::vector<WWTouchAction> WWTouchState::Finger_Canceled(int64_t id, float x, fl
 std::vector<WWTouchAction> WWTouchState::Poll(uint64_t ticks)
 {
     std::vector<WWTouchAction> actions;
+    if (CurrentPhase == Phase::FinishingDrag) {
+        actions.push_back(Action(WWTouchActionType::LeftUp, DeferredReleaseX, DeferredReleaseY));
+        Reset();
+        return actions;
+    }
     if (CurrentPhase == Phase::Pending && ticks - DownTicks >= Settings.LongPressMilliseconds) {
         actions.push_back(Action(WWTouchActionType::CursorMove, DownX, DownY));
         actions.push_back(Action(WWTouchActionType::RightDown, DownX, DownY));
@@ -366,6 +382,8 @@ std::vector<WWTouchAction> WWTouchState::Cancel_All()
     std::vector<WWTouchAction> actions;
     if (CurrentPhase == Phase::Dragging) {
         actions.push_back(Action(WWTouchActionType::LeftUp, LastX, LastY));
+    } else if (CurrentPhase == Phase::FinishingDrag) {
+        actions.push_back(Action(WWTouchActionType::LeftUp, DeferredReleaseX, DeferredReleaseY));
     } else if (CurrentPhase == Phase::Pan) {
         actions.push_back(Action(WWTouchActionType::PanEnd, PanX, PanY));
     }

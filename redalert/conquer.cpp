@@ -3684,6 +3684,8 @@ static void Reinit_Secondary_Mixfiles()
         delete Movies2Mix;
         delete GeneralMix;
         delete ScoreMix;
+        Stop_Primary_Sound_Buffer();
+        delete SoundsMix;
         delete MainMix;
 
         MainMix = new MFCD("MAIN.MIX", &FastKey);
@@ -3701,6 +3703,8 @@ static void Reinit_Secondary_Mixfiles()
         }
         GeneralMix = new MFCD("GENERAL.MIX", &FastKey);
         ScoreMix = new MFCD("SCORES.MIX", &FastKey);
+        SoundsMix = new MFCD("SOUNDS.MIX", &FastKey);
+        SoundsMix->Cache();
 
         in_progress = false;
     }
@@ -3728,7 +3732,7 @@ static bool Change_Local_Dir(int cd)
                 if (vol.Is_Directory()) {
                     CDFileClass::Refresh_Search_Drives();
                     path += PathsClass::SEP;
-                    CDFileClass::Add_Search_Drive(path.c_str());
+                    CDFileClass::Add_Search_Drive(path.c_str(), true);
                     CCFileClass fc("MAIN.MIX");
 
                     // Populate _detected as a bitfield for which discs we found a local copy of.
@@ -3795,16 +3799,20 @@ static bool Change_Local_Dir(int cd)
             if (vol.Is_Directory()) {
                 CDFileClass::Refresh_Search_Drives();
                 path += PathsClass::SEP;
-                CDFileClass::Add_Search_Drive(path.c_str());
+                CDFileClass::Add_Search_Drive(path.c_str(), true);
 
                 // The file should be available if we reached this point.
                 assert(CCFileClass("MAIN.MIX").Is_Available());
 
                 CurrentCD = cd;
                 LastCD = cd;
+                ThemeType theme_playing = Theme.What_Is_Playing();
                 Theme.Stop();
                 Reinit_Secondary_Mixfiles();
                 ThemeClass::Scan();
+                if (theme_playing != THEME_NONE) {
+                    Theme.Queue_Song(theme_playing);
+                }
 
                 return true;
             }
@@ -4096,7 +4104,7 @@ bool Force_CD_Available(int cd)
 #endif
 
 #ifdef FRENCH
-                sprintf(buffer, "Insärez le %s", _cd_name[cd]);
+                sprintf(buffer, "Ins√©rez le %s", _cd_name[cd]);
 #else
 #ifdef GERMAN
                 sprintf(buffer, "Bitte %s", _cd_name[cd]);
@@ -4107,7 +4115,7 @@ bool Force_CD_Available(int cd)
             } else {
 #ifdef DVD
 #ifdef FRENCH
-                sprintf(buffer, "Insärez le %s", _cd_name[4]);
+                sprintf(buffer, "Ins√©rez le %s", _cd_name[4]);
 #else
 #ifdef GERMAN
                 sprintf(buffer, "Bitte %s", _cd_name[4]);

@@ -450,7 +450,7 @@ int CCFileClass::Open(int rights)
             **	attached to the file handle.
             */
             char* dupfile = strdup(File_Name());
-            Open(mixfile->Filename, READ);
+            Open(mixfile->Backing_Filename(), READ);
             Searching(false); // Disable multi-drive search.
             Set_Name(dupfile);
             Searching(true);

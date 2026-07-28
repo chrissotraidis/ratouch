@@ -383,6 +383,7 @@ MFCD* MoviesMix = 0;
 MFCD* Movies2Mix = 0;
 MFCD* GeneralMix = 0;
 MFCD* ScoreMix = 0;
+MFCD* SoundsMix = 0;
 MFCD* MainMix = 0;
 MFCD* ConquerMix = 0;
 
