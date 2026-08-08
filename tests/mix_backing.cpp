@@ -1,13 +1,13 @@
 #include "ccfile.h"
 #include "crc.h"
 #include "mixfile.h"
+#include "test_directory.h"
 
 #include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <fstream>
 #include <string>
-#include <sys/stat.h>
 #include <vector>
 
 int RequiredCD = -2;
@@ -59,10 +59,10 @@ void Write(const std::string& path, const std::vector<unsigned char>& bytes)
 
 int main()
 {
-    const std::string first = "/tmp/ratouch-mix-backing-first";
-    const std::string second = "/tmp/ratouch-mix-backing-second";
-    mkdir(first.c_str(), 0755);
-    mkdir(second.c_str(), 0755);
+    const std::string first = "ratouch-mix-backing-first";
+    const std::string second = "ratouch-mix-backing-second";
+    Ratouch_Test_Create_Directory(first);
+    Ratouch_Test_Create_Directory(second);
 
     const std::vector<unsigned char> first_track = {'f', 'i', 'r', 's', 't'};
     const std::vector<unsigned char> second_track = {'o', 't', 'h', 'e', 'r'};

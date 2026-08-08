@@ -1,9 +1,9 @@
 #include "cdfile.h"
+#include "test_directory.h"
 
 #include <cassert>
 #include <fstream>
 #include <string>
-#include <sys/stat.h>
 
 int RequiredCD = -2;
 bool RunningAsDLL = false;
@@ -19,10 +19,10 @@ void Prog_End(char const*, bool)
 
 int main()
 {
-    const std::string fallback = "/tmp/ratouch-search-fallback";
-    const std::string selected = "/tmp/ratouch-search-selected";
-    mkdir(fallback.c_str(), 0755);
-    mkdir(selected.c_str(), 0755);
+    const std::string fallback = "ratouch-search-fallback";
+    const std::string selected = "ratouch-search-selected";
+    Ratouch_Test_Create_Directory(fallback);
+    Ratouch_Test_Create_Directory(selected);
     std::ofstream(fallback + "/main.mix") << "fallback";
     std::ofstream(selected + "/main.mix") << "selected";
 

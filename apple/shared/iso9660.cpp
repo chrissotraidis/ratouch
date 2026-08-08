@@ -7,13 +7,27 @@
 #include <cstring>
 #include <fstream>
 #include <set>
-#include <sys/stat.h>
 #include <vector>
+
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#endif
 
 namespace
 {
 const uint32_t SectorSize = 2048;
 const uint32_t MaximumDirectorySize = 64 * 1024 * 1024;
+
+int Create_Directory(const std::string& path)
+{
+#ifdef _WIN32
+    return _mkdir(path.c_str());
+#else
+    return mkdir(path.c_str(), 0755);
+#endif
+}
 
 uint32_t Read32(const unsigned char* bytes)
 {
@@ -162,7 +176,7 @@ bool Ratouch_Extract_ISO_MIX_Files(const std::string& iso_path,
     if (!Ratouch_List_ISO_MIX_Files(iso_path, files, error)) {
         return false;
     }
-    if (mkdir(destination.c_str(), 0755) != 0 && errno != EEXIST) {
+    if (Create_Directory(destination) != 0 && errno != EEXIST) {
         error = "The import staging directory could not be created.";
         return false;
     }

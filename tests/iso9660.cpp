@@ -1,10 +1,10 @@
 #include "iso9660.h"
+#include "test_directory.h"
 
 #include <cassert>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
-#include <sys/stat.h>
 #include <vector>
 
 namespace
@@ -46,10 +46,10 @@ size_t Directory_Record(unsigned char* destination,
 
 int main()
 {
-    const char* isoPath = "/tmp/ratouch-iso9660-test.iso";
-    const char* destination = "/tmp/ratouch-iso9660-test-out";
-    mkdir(destination, 0755);
-    std::remove("/tmp/ratouch-iso9660-test-out/REDALERT.MIX");
+    const char* isoPath = "ratouch-iso9660-test.iso";
+    const char* destination = "ratouch-iso9660-test-out";
+    Ratouch_Test_Create_Directory(destination);
+    std::remove("ratouch-iso9660-test-out/REDALERT.MIX");
 
     std::vector<unsigned char> image(24 * Sector, 0);
     unsigned char* primary = image.data() + 16 * Sector;
@@ -91,7 +91,7 @@ int main()
     std::vector<std::string> extracted;
     assert(Ratouch_Extract_ISO_MIX_Files(isoPath, destination, extracted, error));
     assert(extracted.size() == 1);
-    std::ifstream result("/tmp/ratouch-iso9660-test-out/REDALERT.MIX", std::ios::binary);
+    std::ifstream result("ratouch-iso9660-test-out/REDALERT.MIX", std::ios::binary);
     std::string contents((std::istreambuf_iterator<char>(result)), std::istreambuf_iterator<char>());
     assert(contents.size() == 30);
     assert(contents.substr(18) == "MIX-CONTENT!");
