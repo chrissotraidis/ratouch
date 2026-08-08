@@ -1185,7 +1185,7 @@ bool Select_Game(bool fade)
     if (!Debug_Map && !Options.ToggleSidebar) {
         Map.SidebarClass::Activate(1);
     }
-    Map.Flag_To_Redraw();
+    Map.Flag_To_Redraw(true);
     Call_Back();
     Map.Render();
 

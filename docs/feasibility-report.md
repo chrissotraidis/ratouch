@@ -6,6 +6,16 @@
 
 ---
 
+## Implementation update: August 8, 2026
+
+The core feasibility questions are no longer hypothetical. The maintained fork now produces native Apple-silicon macOS and arm64 iPad Simulator apps, imports user-supplied data through native Apple pickers, runs the original engine through an SDL2-only Apple audio path, and exposes a touch-first command surface without changing simulation rules. A fresh public-release audit built the current Mac target and passed all 26 tests.
+
+The major post-study audio work is also implemented: streaming samples tolerate a one-callback refill gap; expansion changes prioritize the selected disc, stop the active sound buffer, reload and cache its `SOUNDS.MIX`, preserve nested archive backing across search-path changes, and resume the active theme. Focused regressions cover the underrun, disc-priority, and nested-backing cases. Real-speaker, headphone, Bluetooth, interruption, and long-session device listening remain validation work, not assumed outcomes.
+
+The original distribution/legal conclusion remains conditional. No playable game data is bundled, and no IPA, TestFlight build, or App Store submission is part of this source-release pass. Current engineering evidence and remaining gates live in [build status](build-status.md) and [remaining work](remaining-work.md).
+
+---
+
 ## 1. Executive summary
 
 Red Alert on Apple platforms is technically feasible with modest engineering effort, because almost all of the hard engine work has already been done in public, GPL-licensed code. The recommended foundation is **Vanilla Conquer** (TheAssemblyArmada/Vanilla-Conquer): a six-year-old, 973-commit, 37-contributor SDL2 + OpenAL port of Red Alert and Tiberian Dawn with a clean compile-time platform abstraction, working campaigns, skirmish, VQA video, LAN multiplayer, and a macOS universal2 `.app` CI pipeline that exists today. I compiled it in this study's Linux environment: 401 build targets, 2 compiler warnings, clean link, binary launches.
@@ -190,7 +200,7 @@ The distribution recommendation and its defense live in the PRD; summary: open r
 ## 13. Save/load, audio, video, lifecycle (Question 10)
 
 - **Saves:** Vanilla Conquer uses the original Westwood machinery (`redalert/saveload.cpp`): Blowfish + LCW over raw struct dumps, with `SAVEGAME_VERSION` computed from the sizeof of 30+ classes and a hard reject on mismatch. Consequence: saves are compatible only between builds with identical class layout; not with original RA95, and potentially not across app updates that touch gameplay structs. The PRD treats save-format stability as a release-gate check and adds iCloud Drive sync of the save directory as a later feature. ra-port's saves work but its own README lists "save/load hardening" as open work.
-- **Audio:** Vanilla Conquer's mixer sits above the 13-function `soundio_imp` shim; the OpenAL backend is 247 lines. Apple deprecated OpenAL.framework in iOS 15 (still functional); options are static openal-soft (LGPL, needs care) or a new SDL-audio backend, which the shim makes straightforward and which removes a dependency class entirely. ra-port already proved SDL-audio-only works (5-voice software mixer with Westwood ADPCM in `mac_audio_stub.cpp`, 788 lines).
+- **Audio:** Vanilla Conquer's mixer sits above the 13-function `soundio_imp` shim. RAtouch now implements the new SDL2 backend anticipated by this report and builds the maintained Apple targets with OpenAL disabled. Its mixer covers simultaneous game/VQA streams, a one-callback streaming-underrun grace period, selected-expansion `SOUNDS.MIX` reload, and stable nested-MIX backing. Automated coverage is current; subjective listening and device-route behavior remain release gates.
 - **Video:** Vanilla Conquer has the full VQA player (`common/vqa*.cpp`) with OpenAL audio and 2x interpolation for hi-res playback; working. ra-port rewrote a VQA player behind the original interface (`PORT/MAC/mac_vqa.cpp`, 1,221 lines); its intro plays with sound. No codec risk on Apple platforms since decoding is pure CPU code.
 - **Lifecycle:** the Generals port documents the sharp edge: iOS resign-active (app switcher) is distinct from backgrounding, and touching the Metal drawable in either state eventually kills the process; the fix is an event-watch that sets atomics gating both simulation and rendering, with a 50 ms idle sleep. The same pattern applies verbatim to SDL2. Backgrounding must also trigger an autosave inside the ~5 second budget, which RA's fast save supports. Memory is a non-issue for RA (tens of MB working set vs the Generals port's ~3 GB).
 

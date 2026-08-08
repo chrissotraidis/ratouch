@@ -16,11 +16,13 @@ FORBIDDEN_SUFFIXES = {".mix", ".iso", ".vqa", ".vqp", ".aud", ".shp", ".wsa", ".
 ALLOWED_PUBLIC_IMAGES = {
     "docs/images/platforms.svg",
     "docs/images/ratouch-banner.png",
+    "docs/images/ratouch-gameplay.png",
     "docs/images/ratouch-gameplay-concept.png",
     "docs/images/touch-controls.svg",
 }
 PUBLIC_RASTER_MINIMUMS = {
     "docs/images/ratouch-banner.png": (2000, 650),
+    "docs/images/ratouch-gameplay.png": (2000, 1400),
     "docs/images/ratouch-gameplay-concept.png": (1600, 900),
 }
 PUBLIC_SVGS = {

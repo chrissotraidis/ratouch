@@ -5,15 +5,18 @@ work. It lists only open gates. Completed implementation and evidence belong in
 [build status](build-status.md); repeatable gameplay scenarios belong in the
 [gameplay compatibility loop](gameplay-compatibility.md).
 
-Last reviewed: July 23, 2026.
+Last reviewed: August 8, 2026.
 
 ## Current baseline
 
 - Apple-silicon macOS and arm64 iPad Simulator builds succeed.
-- All 24 macOS tests pass; the focused gameplay loop contains 12 tests.
+- All 26 macOS tests pass; the focused gameplay loop contains 14 tests.
 - Steam 2229840 data imports and runs through the shared Apple importer.
 - Core build placement and unit-order scenarios pass on macOS and/or iPad
   Simulator as recorded in the gameplay compatibility matrix.
+- Expansion switching reloads the selected disc's cached sound bank and nested
+  MIX files retain stable physical backing; both paths have focused regressions.
+- Initial scenario presentation requests a full redraw before first render.
 - No signed DMG, physical-iPad build, IPA, or TestFlight release is published.
 - Simulator evidence is not physical-device certification.
 
@@ -29,8 +32,9 @@ Work on one row at a time:
 6. Mark the row complete only when every exit condition is observed.
 
 Do not add a framework or duplicate Red Alert's rules to close one case. Use
-the original engine state as the gameplay authority and keep private game data,
-saves, and commercial screenshots out of Git.
+the original engine state as the gameplay authority and keep private game data
+and saves out of Git. New gameplay captures require explicit maintainer review;
+the README hero image is the sole reviewed public exception.
 
 ## Next: locally executable gameplay
 
@@ -39,7 +43,7 @@ hardware. Run them in order and stop at the first failure.
 
 | Order | Gate | Exit condition | Status |
 | --- | --- | --- | --- |
-| 1 | `AUDIO-01` real-speaker session | Complete at least 30 continuous minutes covering music, EVA speech, construction, dense combat, Options, hide/restore, and save/load. Record the triggering action and timestamp for any clipping, repetition, gap, or random fragment. | **NEXT**; automated underrun and 30-second signal checks pass |
+| 1 | `AUDIO-01` real-speaker session | Complete at least 30 continuous minutes covering base and expansion music, EVA speech, construction, dense combat, Options, hide/restore, save/load, and at least one base/Counterstrike/Aftermath transition. Record the triggering action and timestamp for any clipping, repetition, gap, or random fragment. | **NEXT**; automated underrun, selected-disc sound reload, stable nested-MIX backing, and 30-second signal checks pass |
 | 2 | `MISSION-01` game-flow outcomes | Win and lose one skirmish, then complete one representative Allied and Soviet campaign mission. Verify briefing, mission triggers, victory/defeat, score screen, and return path. | Open; abort/loss score path passes |
 
 After these two cases pass, extend the same loop to both full campaigns,
@@ -90,8 +94,9 @@ failures:
 
 - restore GitHub Actions execution after the account billing/spending-limit
   restriction, then require green hosted checks on the release commit;
-- review the project name, icon, store art, screenshots, trademark posture, and
-  bring-your-own-data wording;
+- review the project name, icon, future store art/screenshots, trademark
+  posture, and bring-your-own-data wording; the README capture has had only
+  repository-level review, not store/legal sign-off;
 - finalize the GPL corresponding-source/source-offer mechanism for every
   distributed binary;
 - decide whether and when to contact Electronic Arts before TestFlight or an

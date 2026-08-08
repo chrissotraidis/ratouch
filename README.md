@@ -3,13 +3,21 @@
 </p>
 
 <p align="center">
+  <img src="docs/images/ratouch-gameplay.png" alt="RAtouch running Red Alert on iPadOS with the native Commands tab beside the original production sidebar" width="100%">
+  <br>
+  <sub>Current iPadOS gameplay using locally supplied Red Alert data. Game data is not included.</sub>
+</p>
+
+<h1 align="center">RAtouch</h1>
+
+<p align="center">
   <strong>The original Red Alert simulation, given a touch-first iPad control system and a native Mac home.</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/chrissotraidis/ratouch/actions/workflows/ratouch.yml"><img alt="Apple build and tests" src="https://github.com/chrissotraidis/ratouch/actions/workflows/ratouch.yml/badge.svg"></a>
-  <img alt="Status: active alpha" src="https://img.shields.io/badge/status-active_alpha-ff3b30">
-  <img alt="Tests: 24 passing" src="https://img.shields.io/badge/tests-24_passing-2f8f5b">
+  <img alt="Status: public source alpha" src="https://img.shields.io/badge/status-public_source_alpha-ff3b30">
+  <img alt="Tests: 26 passing" src="https://img.shields.io/badge/tests-26_passing-2f8f5b">
   <img alt="Platforms: macOS and iPadOS" src="https://img.shields.io/badge/platforms-macOS_%7C_iPadOS-f4ead7">
   <a href="License.txt"><img alt="License: GPL-3.0 with additional terms" src="https://img.shields.io/badge/license-GPL--3.0_with_terms-292c31"></a>
 </p>
@@ -18,7 +26,7 @@
   <a href="#why-ratouch-exists">Purpose</a> ·
   <a href="#ratouch-and-openra">RAtouch and OpenRA</a> ·
   <a href="#touch-is-the-product">Touch controls</a> ·
-  <a href="#availability">Availability</a> ·
+  <a href="#install-status">Install status</a> ·
   <a href="docs/remaining-work.md">Remaining work</a> ·
   <a href="#install-and-run">Build</a> ·
   <a href="#bring-your-own-data">Game data</a> ·
@@ -34,7 +42,20 @@ The campaigns, skirmish AI, movies, music, saves, production sidebar, hotkeys, a
 
 > **Current availability:** source-build alpha for Apple-silicon macOS and the arm64 iPad Simulator. A signed Mac DMG and physical-iPad/TestFlight builds are planned, not yet published.
 
-This repository contains engine and platform code only. **It does not contain commercial game data.** You provide legally acquired compatible data on your own device.
+This repository contains engine, platform code, project artwork, and one reviewed gameplay capture. **It does not contain playable commercial game data.** You provide legally acquired compatible data on your own device.
+
+## Install status
+
+| Option | Status | What to do |
+| --- | --- | --- |
+| Public source | **Available now** | Clone this repository and follow the Mac or iPad Simulator instructions below. |
+| macOS source build | **Verified on Apple silicon** | Build `RAtouch.app` locally with CMake and SDL2. |
+| iPad Simulator source build | **Verified** | Build, install, and launch with the provided script and `simctl`. |
+| Physical iPad build | **Not yet documented for public use** | Device signing and hardware acceptance remain release gates. |
+| Downloadable `.ipa` | **Not published yet** | IPA packaging is the next separate milestone after this source-release pass. |
+| TestFlight / App Store | **Not announced** | No public listing or TestFlight exists. |
+
+The current source builds with networking disabled, passes all 26 automated tests, and passes the repository asset/link audit. Simulator and build evidence are not presented as physical-device certification.
 
 ## Why RAtouch exists
 
@@ -112,17 +133,11 @@ The simulation is shared. The control surface is designed for the device in fron
 
 | Native apps | Touch evidence | Runtime proof | Public boundary |
 | --- | --- | --- | --- |
-| Apple-silicon macOS app and arm64 iPad Simulator app | Tap, drag, hold, two-touch pinch/reset, command deck, control groups, pointer, and keyboard exercised in live missions | 24 automated tests plus documented Mac and iPad Simulator playtests | Original project artwork only; commercial data stays local and ignored |
+| Apple-silicon macOS app and arm64 iPad Simulator app | Tap, drag, hold, two-touch pinch/reset, command deck, control groups, pointer, and keyboard exercised in live missions | 26 automated tests plus documented Mac and iPad Simulator playtests | One reviewed gameplay capture; playable commercial data stays local and ignored |
 
 The first end-to-end build was completed in a 20-hour proof-gated session: implementation, repeated campaign and skirmish play, input tuning, lifecycle checks, crash repair, documentation, and publication. Read the concise [engineering record](docs/engineering-record-2026-07-21.md) or the complete [runtime evidence log](docs/build-status.md).
 
-<p align="center">
-  <img src="docs/images/ratouch-gameplay-concept.png" alt="Original RAtouch concept art showing an abstract touch-driven tactical field on an iPad" width="100%">
-  <br>
-  <sub>Original RAtouch concept art — not a game screenshot and not built from commercial assets.</sub>
-</p>
-
-## Availability
+## Availability and next step
 
 | Platform | Available now | Public distribution target |
 | --- | --- | --- |
@@ -130,7 +145,7 @@ The first end-to-end build was completed in a 20-hour proof-gated session: imple
 | iPadOS | Verified arm64 iPad Simulator source build | Physical-device beta, then TestFlight and an App Store attempt |
 | iPhone | Not a supported product target | No commitment until an explicit interaction and UI-quality gate passes |
 
-RAtouch is source-build alpha software. There is no downloadable DMG, IPA, or TestFlight build yet. A loose IPA is not the intended public experience: iPad distribution should move through signed physical-device builds and TestFlight after hardware playtesting.
+RAtouch is public source-build alpha software. There is no downloadable DMG, IPA, or TestFlight build yet. The next milestone is to package and audit the `.ipa`; that work is deliberately not part of this repository-prep pass.
 
 ## Start here
 
@@ -150,8 +165,8 @@ RAtouch is an active alpha, not a packaged public release.
 | iPad input | Direct selection and orders, two-finger pan, pinch zoom, long-press right-click, control groups, keyboard-free commands, hardware keyboard, pointer, and touch settings exercised in Simulator |
 | macOS input | Retina-aware absolute pointer synchronization, configurable 25–200% speed, edge scrolling, native window/fullscreen, menus, and clean quit autosave |
 | Data safety | Native folder/file/ISO picker, structural validation, known-file hashes, atomic import, zero-copy Steam archive compatibility, provenance receipt, staged replacement, and save export |
-| Audio and UI | One SDL2 game/movie mixer, underrun regression coverage, focus-safe pause/resume, native command deck, Dynamic Type controls, display and volume settings, and bundled license views |
-| Automated proof | 24 tests, arm64 iPad Simulator build, macOS build, and public-repository hygiene verification |
+| Audio and UI | One SDL2 game/movie mixer, underrun regression coverage, expansion-disc sound-bank reload, stable nested-MIX backing, focus-safe pause/resume, native command deck, Dynamic Type controls, display and volume settings, and bundled license views |
+| Automated proof | 26 tests, arm64 iPad Simulator build, macOS build, and public-repository hygiene verification |
 
 See the [20-hour engineering record](docs/engineering-record-2026-07-21.md), exact session evidence in [build status](docs/build-status.md), and the maintained [input contract](docs/input-design.md).
 
@@ -168,6 +183,12 @@ packaging, and human-owned release gates so Simulator proof is never mistaken
 for device or distribution sign-off.
 
 Simulator evidence is reported as Simulator evidence; it is not presented as physical-device certification.
+
+### Major audio repair
+
+The July 28 repair addressed two separate audio failure paths. SDL streaming now tolerates a one-callback refill gap instead of ending a sample immediately. Expansion switching now prioritizes the selected disc, stops the active primary sound buffer, reloads and caches that disc's `SOUNDS.MIX`, preserves nested MIX files against later search-path changes, and resumes the active theme. The `soundio_sdl2`, `cdfile_search`, and `mix_backing` regressions cover those code paths.
+
+This is strong build and automated evidence, not a claim that every speaker, headphone, Bluetooth, interruption, or long-session case has passed. The real-speaker soak remains in [Remaining work](docs/remaining-work.md).
 
 ## Install and run
 
@@ -233,7 +254,7 @@ RAtouch intentionally ships empty. Imported files stay in the app's Application 
 - [Product requirements and phased build plan](docs/prd-build-plan.md)
 - [Technical and legal feasibility report](docs/feasibility-report.md)
 
-Never commit MIX files, ISO images, save files, imported artwork, or screenshots containing commercial game assets.
+Never commit MIX files, ISO images, save files, or imported artwork. New gameplay screenshots require explicit maintainer review and must not expose personal data; the single README capture is the reviewed public exception.
 
 ## Privacy
 
@@ -248,9 +269,9 @@ Issues and focused pull requests are welcome, especially for reproducible input 
 1. keep engine changes narrow and platform behavior isolated;
 2. run the macOS tests and `python3 scripts/verify-public-repo.py`;
 3. describe whether input evidence came from Simulator or physical hardware;
-4. do not attach or commit commercial game assets, derived screenshots, archives, or saves.
+4. do not attach game archives, saves, or unreviewed gameplay captures.
 
-Start with [Remaining work](docs/remaining-work.md), the [input contract](docs/input-design.md), and [build status](docs/build-status.md). Security-sensitive reports should avoid including game data or personal save files.
+Read [Contributing](CONTRIBUTING.md) before proposing a change. Start with [Remaining work](docs/remaining-work.md), the [input contract](docs/input-design.md), and [build status](docs/build-status.md). Security-sensitive reports should avoid including game data or personal save files.
 
 ### Repository guide
 
@@ -261,7 +282,7 @@ Start with [Remaining work](docs/remaining-work.md), the [input contract](docs/i
 | `apple/shared/` | Transactional importer, manifest, MIX validation, and ISO support shared by both apps |
 | `common/wwtouch.*` | Platform-neutral gesture recognizer and touch action model |
 | `tests/` | Gesture, geometry, lifecycle, settings, importer, audio, save, and regression coverage |
-| `docs/` | Product contract, engineering record, detailed evidence, provenance, and compatibility notes |
+| `docs/` | Product contract, engineering record, current technical evidence, reviewed public images, provenance, and compatibility notes |
 | `ref/` | Local-only game-data workspace; everything except its policy files is ignored |
 
 ## Direction
@@ -272,7 +293,7 @@ The next refinements are proof-gated:
 2. keep running campaign and skirmish sessions around selection, orders, scrolling, zoom, command-deck recovery, control groups, save/load, and lifecycle;
 3. package the verified Mac build as a signed and notarized DMG with a clean first-run data-import experience;
 4. establish signed iPad device builds, then move through a focused beta and TestFlight before attempting App Store distribution;
-5. preserve reproducible tests, honest platform labels, and a public repository free of commercial assets.
+5. preserve reproducible tests, honest platform labels, and a public repository free of playable commercial data.
 
 The live open queue is in [Remaining work](docs/remaining-work.md). The original
 product sequence and acceptance rationale remain in the
@@ -280,6 +301,8 @@ product sequence and acceptance rationale remain in the
 
 ## Foundation and license
 
-RAtouch is built on [Vanilla Conquer](https://github.com/TheAssemblyArmada/Vanilla-Conquer) and keeps its portable engine architecture intact wherever possible. The source is licensed under GPL-3.0 with the additional terms carried in [License.txt](License.txt). Those terms grant no trademark or game-asset rights. The complete text and source link are also available inside each build through **RAtouch → About RAtouch** on macOS and **Commands → Controls → About & license** on iPadOS.
+RAtouch is built on [Vanilla Conquer](https://github.com/TheAssemblyArmada/Vanilla-Conquer) and keeps its portable engine architecture intact wherever possible. The source is licensed under GPL-3.0 with the additional terms carried in [License.txt](License.txt). Those terms grant no trademark or game-asset rights; see the scoped [rights and licensing boundary](RIGHTS_AND_LICENSES.md). The complete license text and source link are also available inside each build through **RAtouch → About RAtouch** on macOS and **Commands → Controls → About & license** on iPadOS.
 
 RAtouch is an independent, non-commercial project. It is not affiliated with, endorsed by, or supported by Electronic Arts. Product names may be referenced only to explain compatibility with data the user already owns.
+
+The gameplay image at the top was supplied for this project and shows the app running with locally provided game data. It is documentation, not a redistribution of the game or a grant of rights in Electronic Arts material.
