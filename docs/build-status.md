@@ -127,6 +127,7 @@ No imported game file is stored in the repository. The one public gameplay PNG i
 ## Public-release verification: August 8, 2026
 
 - Live GitHub `main` and local `main` both resolved to `4b758435d47c1d4cf398612299db492ffdad035d` before the release-prep edits began.
+- GitHub repository visibility remained **Private** during this pass. No visibility change was made; publication is a separate maintainer decision.
 - A fresh `RelWithDebInfo` Apple-silicon build completed from CMake 4.4.2 in `build/ratouch-release-audit` with SDL2 audio enabled, OpenAL and networking disabled, and the maintained Mac app target selected.
 - All 26 tests passed. This includes the two expansion-audio/data-routing regressions added after the original 24-test engineering session.
 - A fresh host-access Xcode 26.6 build produced an unsigned arm64 iPad Simulator app targeting iPadOS 15.0 or newer. Bundle inspection confirmed the privacy manifest, matching bundled license, expected Files/pointer/orientation metadata, no OpenAL dependency, and no MIX/ISO/audio/video/save payload.

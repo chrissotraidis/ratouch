@@ -9,7 +9,7 @@ namespace
 void Expect(const std::vector<WWTouchAction>& actions, std::initializer_list<WWTouchActionType> expected)
 {
     assert(actions.size() == expected.size());
-    size_t index = 0;
+    std::size_t index = 0;
     for (WWTouchActionType type : expected) {
         assert(actions[index++].Type == type);
     }

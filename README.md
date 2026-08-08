@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://github.com/chrissotraidis/ratouch/actions/workflows/ratouch.yml"><img alt="Apple build and tests" src="https://github.com/chrissotraidis/ratouch/actions/workflows/ratouch.yml/badge.svg"></a>
-  <img alt="Status: public source alpha" src="https://img.shields.io/badge/status-public_source_alpha-ff3b30">
+  <img alt="Status: source release candidate" src="https://img.shields.io/badge/status-source_release_candidate-ff3b30">
   <img alt="Tests: 26 passing" src="https://img.shields.io/badge/tests-26_passing-2f8f5b">
   <img alt="Platforms: macOS and iPadOS" src="https://img.shields.io/badge/platforms-macOS_%7C_iPadOS-f4ead7">
   <a href="License.txt"><img alt="License: GPL-3.0 with additional terms" src="https://img.shields.io/badge/license-GPL--3.0_with_terms-292c31"></a>
@@ -48,7 +48,7 @@ This repository contains engine, platform code, project artwork, and one reviewe
 
 | Option | Status | What to do |
 | --- | --- | --- |
-| Public source | **Available now** | Clone this repository and follow the Mac or iPad Simulator instructions below. |
+| Source release candidate | **Ready on `main`** | The repository is still private; make it public only after the maintainer confirms the release decision. |
 | macOS source build | **Verified on Apple silicon** | Build `RAtouch.app` locally with CMake and SDL2. |
 | iPad Simulator source build | **Verified** | Build, install, and launch with the provided script and `simctl`. |
 | Physical iPad build | **Not yet documented for public use** | Device signing and hardware acceptance remain release gates. |
@@ -145,7 +145,7 @@ The first end-to-end build was completed in a 20-hour proof-gated session: imple
 | iPadOS | Verified arm64 iPad Simulator source build | Physical-device beta, then TestFlight and an App Store attempt |
 | iPhone | Not a supported product target | No commitment until an explicit interaction and UI-quality gate passes |
 
-RAtouch is public source-build alpha software. There is no downloadable DMG, IPA, or TestFlight build yet. The next milestone is to package and audit the `.ipa`; that work is deliberately not part of this repository-prep pass.
+RAtouch is source-build alpha software prepared for public release. There is no downloadable DMG, IPA, or TestFlight build yet. The next milestone is to package and audit the `.ipa`; that work is deliberately not part of this repository-prep pass.
 
 ## Start here
 
