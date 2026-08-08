@@ -40,6 +40,7 @@ add_dependencies(tests test_wsa_sizing)
 add_executable(test_savegame_version savegame_version.cpp)
 target_include_directories(test_savegame_version PUBLIC .. ../common ../redalert)
 target_compile_definitions(test_savegame_version PUBLIC ${VANILLA_DEFS})
+target_link_libraries(test_savegame_version PUBLIC common ${STATIC_LIBS})
 add_test(NAME savegame_version COMMAND ${TARGET_SYSTEM_EMULATOR} $<TARGET_FILE:test_savegame_version>)
 add_dependencies(tests test_savegame_version)
 
