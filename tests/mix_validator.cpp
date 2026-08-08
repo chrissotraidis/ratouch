@@ -1,6 +1,7 @@
 #include "mix_validator.h"
 
 #include <cassert>
+#include <cstdint>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -30,6 +31,10 @@ void Write(const char* path, const std::vector<unsigned char>& bytes)
 
 int main()
 {
+    const char* validPath = "ratouch-valid.mix";
+    const char* truncatedPath = "ratouch-truncated.mix";
+    const char* encryptedPath = "ratouch-encrypted.mix";
+    const char* junkPath = "ratouch-junk.mix";
     std::string error;
     std::vector<unsigned char> classic(30, 0);
     Write16(classic, 0, 1);
@@ -37,19 +42,19 @@ int main()
     Write32(classic, 6, 0x12345678);
     Write32(classic, 10, 0);
     Write32(classic, 14, 12);
-    Write("/tmp/ratouch-valid.mix", classic);
-    assert(Ratouch_Validate_MIX("/tmp/ratouch-valid.mix", error));
+    Write(validPath, classic);
+    assert(Ratouch_Validate_MIX(validPath, error));
 
     classic.resize(20);
-    Write("/tmp/ratouch-truncated.mix", classic);
-    assert(!Ratouch_Validate_MIX("/tmp/ratouch-truncated.mix", error));
+    Write(truncatedPath, classic);
+    assert(!Ratouch_Validate_MIX(truncatedPath, error));
 
     std::vector<unsigned char> encrypted(112, 0);
     Write32(encrypted, 0, 0x00020000);
-    Write("/tmp/ratouch-encrypted.mix", encrypted);
-    assert(Ratouch_Validate_MIX("/tmp/ratouch-encrypted.mix", error));
+    Write(encryptedPath, encrypted);
+    assert(Ratouch_Validate_MIX(encryptedPath, error));
 
-    Write("/tmp/ratouch-junk.mix", std::vector<unsigned char>(64, 0x55));
-    assert(!Ratouch_Validate_MIX("/tmp/ratouch-junk.mix", error));
+    Write(junkPath, std::vector<unsigned char>(64, 0x55));
+    assert(!Ratouch_Validate_MIX(junkPath, error));
     return 0;
 }
