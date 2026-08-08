@@ -68,7 +68,7 @@ target_include_directories(test_asset_manifest PUBLIC ../apple/shared)
 add_test(NAME asset_manifest COMMAND ${TARGET_SYSTEM_EMULATOR} $<TARGET_FILE:test_asset_manifest>)
 add_dependencies(tests test_asset_manifest)
 
-if(SDL2)
+if(APPLE AND SDL2)
     add_executable(test_ios_lifecycle ios_lifecycle.cpp ../common/ios_lifecycle.cpp)
     target_include_directories(test_ios_lifecycle PUBLIC ../common)
     target_link_libraries(test_ios_lifecycle PUBLIC ${SDL2_LIBRARY})
@@ -105,7 +105,7 @@ set_tests_properties(
     PROPERTIES LABELS "ratouch_gameplay_loop"
 )
 
-if(SDL2)
+if(APPLE AND SDL2)
     set_tests_properties(ios_lifecycle PROPERTIES LABELS "ratouch_gameplay_loop")
 endif()
 
