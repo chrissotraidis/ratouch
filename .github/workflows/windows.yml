@@ -14,6 +14,10 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
         
+    - name: Check Windows package guards
+      shell: bash
+      run: python3 -B tests/windows_package_test.py
+
     - uses: ilammy/msvc-dev-cmd@v1.13.0
       with:
         arch: x86
@@ -38,15 +42,34 @@ jobs:
       run: |
         cmake --workflow --preset remaster
 
+    - name: Stage dependency notices
+      shell: bash
+      run: |
+        mkdir -p licenses
+        cp -R tools/miniposix licenses/miniposix
+
     - name: Create archives
       shell: bash
       run: |
         mkdir artifact
-        7z a artifact/vanilla-conquer-remasterdll-msvc-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/remaster/RelWithDebInfo/RedAlert.dll ./build/remaster/RelWithDebInfo/TiberianDawn.dll
-        7z a artifact/vanilla-conquer-remasterdll-msvc-${{ steps.gitinfo.outputs.sha_short }}-debug.zip ./build/remaster/RelWithDebInfo/RedAlert.pdb ./build/remaster/RelWithDebInfo/TiberianDawn.pdb
-        7z a artifact/vanilla-ra-remaster-mod-msvc-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/remaster/Vanilla_RA
-        7z a artifact/vanilla-td-remaster-mod-msvc-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/remaster/Vanilla_TD
+        7z a artifact/vanilla-conquer-remasterdll-msvc-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/remaster/RelWithDebInfo/RedAlert.dll ./build/remaster/RelWithDebInfo/TiberianDawn.dll ./License.txt ./RIGHTS_AND_LICENSES.md ./licenses
+        7z a artifact/vanilla-conquer-remasterdll-msvc-${{ steps.gitinfo.outputs.sha_short }}-debug.zip ./build/remaster/RelWithDebInfo/RedAlert.pdb ./build/remaster/RelWithDebInfo/TiberianDawn.pdb ./License.txt ./RIGHTS_AND_LICENSES.md ./licenses
+        7z a artifact/vanilla-ra-remaster-mod-msvc-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/remaster/Vanilla_RA ./License.txt ./RIGHTS_AND_LICENSES.md ./licenses
+        7z a artifact/vanilla-td-remaster-mod-msvc-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/remaster/Vanilla_TD ./License.txt ./RIGHTS_AND_LICENSES.md ./licenses
         
+    - name: Fetch pinned public PadMint auditor
+      uses: actions/checkout@v4
+      with:
+        repository: chrissotraidis/padmint
+        ref: f0efbb738cac934559e986143343dc8720a6fb1d
+        path: .ci-padmint
+        persist-credentials: false
+
+    - name: Audit staged Windows archives
+      shell: bash
+      working-directory: .ci-padmint
+      run: python3 -B -m padmint audit "$GITHUB_WORKSPACE"/artifact/*.zip
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
@@ -88,6 +111,10 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
         
+    - name: Check Windows package guards
+      shell: bash
+      run: python3 -B tests/windows_package_test.py
+
     - uses: ilammy/msvc-dev-cmd@v1.13.0
       with:
         arch: ${{ matrix.arch.cmd }}
@@ -122,20 +149,45 @@ jobs:
         Copy-Item -Path "SDL2-2.0.12\lib\${{ matrix.arch.cmd }}\SDL2.dll" -Destination build/${{ matrix.preset }}/RelWithDebInfo
         cmake --workflow --preset ${{ matrix.preset }}
         
+    - name: Stage dependency notices
+      if: ${{ matrix.preset != 'testing' && matrix.preset != 'nonet' }}
+      shell: bash
+      run: |
+        mkdir -p licenses
+        cp -R tools/miniposix licenses/miniposix
+        mkdir -p licenses/SDL2 licenses/OpenAL-Soft
+        cp ./SDL2-2.0.12/COPYING.txt ./SDL2-2.0.12/README-SDL.txt licenses/SDL2/
+        cp ./openal-soft-1.21.0-bin/COPYING licenses/OpenAL-Soft/
+
     - name: Create archives
       if: ${{ matrix.preset != 'testing' &&  matrix.preset != 'nonet' }}
       shell: bash
       run: |
         mkdir artifact
-        7z a artifact/vanilla-conquer-${{ matrix.preset }}-win-msvc-${{ matrix.arch.lin }}-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.exe ./build/${{ matrix.preset }}/RelWithDebInfo/vanillara.exe ./SDL2-2.0.12/lib/${{ matrix.arch.cmd }}/SDL2.dll ./openal-soft-1.21.0-bin/bin/${{ matrix.arch.win }}/OpenAL32.dll
-        7z a artifact/vanilla-conquer-${{ matrix.preset }}-win-msvc-${{ matrix.arch.lin }}-${{ steps.gitinfo.outputs.sha_short }}-debug.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.pdb ./build/${{ matrix.preset }}/RelWithDebInfo/vanillara.pdb
+        7z a artifact/vanilla-conquer-${{ matrix.preset }}-win-msvc-${{ matrix.arch.lin }}-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.exe ./build/${{ matrix.preset }}/RelWithDebInfo/vanillara.exe ./SDL2-2.0.12/lib/${{ matrix.arch.cmd }}/SDL2.dll ./openal-soft-1.21.0-bin/bin/${{ matrix.arch.win }}/OpenAL32.dll ./License.txt ./RIGHTS_AND_LICENSES.md ./licenses
+        7z a artifact/vanilla-conquer-${{ matrix.preset }}-win-msvc-${{ matrix.arch.lin }}-${{ steps.gitinfo.outputs.sha_short }}-debug.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.pdb ./build/${{ matrix.preset }}/RelWithDebInfo/vanillara.pdb ./License.txt ./RIGHTS_AND_LICENSES.md ./licenses
 
     - name: Add internal tools to archive
       if: ${{ matrix.preset == 'internal' }}
       run: |
-        7z a artifact/vanilla-conquer-${{ matrix.preset }}-win-msvc-${{ matrix.arch.lin }}-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillamix.exe
-        7z a artifact/vanilla-conquer-${{ matrix.preset }}-win-msvc-${{ matrix.arch.lin }}-${{ steps.gitinfo.outputs.sha_short }}-debug.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillamix.pdb
+        7z a artifact/vanilla-conquer-${{ matrix.preset }}-win-msvc-${{ matrix.arch.lin }}-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillamix.exe ./License.txt ./RIGHTS_AND_LICENSES.md ./licenses
+        7z a artifact/vanilla-conquer-${{ matrix.preset }}-win-msvc-${{ matrix.arch.lin }}-${{ steps.gitinfo.outputs.sha_short }}-debug.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillamix.pdb ./License.txt ./RIGHTS_AND_LICENSES.md ./licenses
     
+    - name: Fetch pinned public PadMint auditor
+      if: ${{ matrix.preset != 'testing' &&  matrix.preset != 'nonet' }}
+      uses: actions/checkout@v4
+      with:
+        repository: chrissotraidis/padmint
+        ref: f0efbb738cac934559e986143343dc8720a6fb1d
+        path: .ci-padmint
+        persist-credentials: false
+
+    - name: Audit staged Windows archives
+      if: ${{ matrix.preset != 'testing' &&  matrix.preset != 'nonet' }}
+      shell: bash
+      working-directory: .ci-padmint
+      run: python3 -B -m padmint audit "$GITHUB_WORKSPACE"/artifact/*.zip
+
     - name: Upload artifact
       if: ${{ matrix.preset != 'testing' &&  matrix.preset != 'nonet' }}
       uses: actions/upload-artifact@v4
