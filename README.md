@@ -20,6 +20,8 @@
   <img alt="Tests: 26 passing" src="https://img.shields.io/badge/tests-26_passing-2f8f5b">
   <img alt="Platforms: macOS and iPadOS" src="https://img.shields.io/badge/platforms-macOS_%7C_iPadOS-f4ead7">
   <a href="License.txt"><img alt="License: GPL-3.0 with additional terms" src="https://img.shields.io/badge/license-GPL--3.0_with_terms-292c31"></a>
+  <img alt="Game data not included" src="https://img.shields.io/badge/game%20data-not%20included-FF453A">
+  <a href="https://discord.gg/xwHfUD2bxW"><img alt="Join the RAtouch Discord" src="https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&amp;logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -43,6 +45,13 @@ The campaigns, skirmish AI, movies, music, saves, production sidebar, hotkeys, a
 > **Current availability:** public-source alpha with an [unsigned v0.1.0 IPA](https://github.com/chrissotraidis/ratouch/releases/download/v0.1.0/RAtouch-v0.1.0-unsigned.ipa) for self-signing and sideloading. Apple-silicon macOS and the arm64 iPad Simulator remain available as source builds. A signed Mac DMG and TestFlight build are not published.
 
 This repository contains engine, platform code, project artwork, and one reviewed gameplay capture. **It does not contain playable commercial game data.** You provide legally acquired compatible data on your own device.
+
+> [!NOTE]
+> **AI disclosure:** RAtouch uses substantial AI assistance for code, tests,
+> documentation, debugging and maintenance. Some support replies and maintenance
+> tasks are automated. There is no audited percentage of AI-generated code.
+> Build, test and device records describe what was checked. This disclosure
+> concerns RAtouch's workflow, not the authorship of its upstream projects.
 
 ## Install status
 
@@ -310,6 +319,16 @@ The next refinements are proof-gated:
 The live open queue is in [Remaining work](docs/remaining-work.md). The original
 product sequence and acceptance rationale remain in the
 [PRD and build plan](docs/prd-build-plan.md).
+
+## Community and support
+
+[Join the Discord](https://discord.gg/xwHfUD2bxW) for help and news. It is one
+community for RAtouch and its sibling projects, such as KartPad, BlueWake and
+MeleePad: ask about setup and installing, share how it runs on your device, and
+hear about new releases first.
+
+Found a bug? [Open an issue](https://github.com/chrissotraidis/ratouch/issues)
+with your device, its OS version, and the steps that led to it.
 
 ## Foundation and license
 
