@@ -160,11 +160,12 @@ if(SDL2)
         set(SDL_TESTS OFF CACHE BOOL "" FORCE)
         set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
         set(SDL2_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
+        # SDL 2.32.10 plus the Pad ports UIKit scene startup commit: apps built with
+        # the iOS 27 SDK must start through UIKit scenes or iOS 27 closes them at launch.
         FetchContent_Declare(
             SDL2
-            URL https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz
-            URL_HASH SHA256=5f5993c530f084535c65a6879e9b26ad441169b3e25d789d83287040a9ca5165
-            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+            GIT_REPOSITORY https://github.com/chrissotraidis/SDL.git
+            GIT_TAG c6756fcd3de8090a8f72ac1a0b6fb6e50f0021d1
         )
         FetchContent_MakeAvailable(SDL2)
         list(APPEND VANILLA_LIBS SDL2::SDL2-static)
