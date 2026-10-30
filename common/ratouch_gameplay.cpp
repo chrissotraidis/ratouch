@@ -2,9 +2,9 @@
 
 namespace
 {
-// Platform callbacks request work through SDL; this state is owned by the engine thread.
-bool GameplayActive = false;
-}
+    // Platform callbacks request work through SDL; this state is owned by the engine thread.
+    bool GameplayActive = false;
+} // namespace
 
 void Ratouch_Set_Gameplay_Active(bool active)
 {

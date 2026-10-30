@@ -6,27 +6,27 @@
 
 namespace
 {
-void Expect(const std::vector<WWTouchAction>& actions, std::initializer_list<WWTouchActionType> expected)
-{
-    assert(actions.size() == expected.size());
-    std::size_t index = 0;
-    for (WWTouchActionType type : expected) {
-        assert(actions[index++].Type == type);
+    void Expect(const std::vector<WWTouchAction>& actions, std::initializer_list<WWTouchActionType> expected)
+    {
+        assert(actions.size() == expected.size());
+        std::size_t index = 0;
+        for (WWTouchActionType type : expected) {
+            assert(actions[index++].Type == type);
+        }
     }
-}
 
-void ExpectCompoundPan(float dx, float dy)
-{
-    WWTouchState touch;
-    touch.Finger_Down(1, 100, 100, 0);
-    touch.Finger_Down(2, 140, 100, 10);
-    Expect(touch.Finger_Motion(1, 100 + dx, 100 + dy, 20), {});
-    const std::vector<WWTouchAction> actions = touch.Finger_Motion(2, 140 + dx, 100 + dy, 25);
-    Expect(actions, {WWTouchActionType::PanMove});
-    assert(actions[0].DeltaX == dx);
-    assert(actions[0].DeltaY == dy);
-}
-}
+    void ExpectCompoundPan(float dx, float dy)
+    {
+        WWTouchState touch;
+        touch.Finger_Down(1, 100, 100, 0);
+        touch.Finger_Down(2, 140, 100, 10);
+        Expect(touch.Finger_Motion(1, 100 + dx, 100 + dy, 20), {});
+        const std::vector<WWTouchAction> actions = touch.Finger_Motion(2, 140 + dx, 100 + dy, 25);
+        Expect(actions, {WWTouchActionType::PanMove});
+        assert(actions[0].DeltaX == dx);
+        assert(actions[0].DeltaY == dy);
+    }
+} // namespace
 
 int main()
 {
@@ -117,10 +117,7 @@ int main()
         WWTouchState touch;
         touch.Finger_Down(1, 20, 30, 0);
         const std::vector<WWTouchAction> actions = touch.Finger_Up(1, 40, 50, 80);
-        Expect(actions,
-               {WWTouchActionType::CursorMove,
-                WWTouchActionType::LeftDown,
-                WWTouchActionType::CursorMove});
+        Expect(actions, {WWTouchActionType::CursorMove, WWTouchActionType::LeftDown, WWTouchActionType::CursorMove});
         assert(actions[0].X == 20 && actions[0].Y == 30);
         assert(actions[2].X == 40 && actions[2].Y == 50);
         const std::vector<WWTouchAction> release = touch.Poll(81);

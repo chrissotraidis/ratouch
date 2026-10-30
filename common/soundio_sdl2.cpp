@@ -12,16 +12,16 @@
 
 namespace
 {
-constexpr int BUFFER_COUNT = 2;
+    constexpr int BUFFER_COUNT = 2;
 
-struct AudioState;
-AudioState* State = nullptr;
+    struct AudioState;
+    AudioState* State = nullptr;
 
-SDL_AudioFormat Audio_Format(int bits)
-{
-    return bits == 8 ? AUDIO_U8 : AUDIO_S16SYS;
-}
-}
+    SDL_AudioFormat Audio_Format(int bits)
+    {
+        return bits == 8 ? AUDIO_U8 : AUDIO_S16SYS;
+    }
+} // namespace
 
 struct SampleTrackerTypeImp
 {
@@ -40,60 +40,60 @@ struct SampleTrackerTypeImp
 
 namespace
 {
-struct AudioState
-{
-    SDL_AudioDeviceID Device = 0;
-    SDL_AudioSpec Output = {};
-    std::vector<SampleTrackerTypeImp*> Samples;
-    bool ReverseChannels = false;
-    bool OwnsAudioSubsystem = false;
-};
+    struct AudioState
+    {
+        SDL_AudioDeviceID Device = 0;
+        SDL_AudioSpec Output = {};
+        std::vector<SampleTrackerTypeImp*> Samples;
+        bool ReverseChannels = false;
+        bool OwnsAudioSubsystem = false;
+    };
 
-void Audio_Callback(void*, Uint8* output, int length)
-{
-    std::memset(output, 0, length);
-    if (State == nullptr) {
-        return;
-    }
-
-    for (SampleTrackerTypeImp* sample : State->Samples) {
-        if (!sample->Playing || sample->Stream == nullptr) {
-            continue;
+    void Audio_Callback(void*, Uint8* output, int length)
+    {
+        std::memset(output, 0, length);
+        if (State == nullptr) {
+            return;
         }
 
-        const int bytes = SDL_AudioStreamGet(sample->Stream, sample->Scratch, std::min(length, sample->ScratchSize));
-        if (bytes > 0) {
-            sample->EmptyCallbacks = 0;
-            const int volume = std::min<int>(SDL_MIX_MAXVOLUME,
-                                             sample->Volume * SDL_MIX_MAXVOLUME / 65536U);
-            SDL_MixAudioFormat(output, sample->Scratch, State->Output.format, bytes, volume);
+        for (SampleTrackerTypeImp* sample : State->Samples) {
+            if (!sample->Playing || sample->Stream == nullptr) {
+                continue;
+            }
+
+            const int bytes =
+                SDL_AudioStreamGet(sample->Stream, sample->Scratch, std::min(length, sample->ScratchSize));
+            if (bytes > 0) {
+                sample->EmptyCallbacks = 0;
+                const int volume = std::min<int>(SDL_MIX_MAXVOLUME, sample->Volume * SDL_MIX_MAXVOLUME / 65536U);
+                SDL_MixAudioFormat(output, sample->Scratch, State->Output.format, bytes, volume);
+            }
+            if (bytes <= 0 && SDL_AudioStreamAvailable(sample->Stream) <= 0) {
+                ++sample->EmptyCallbacks;
+                if (sample->EmptyCallbacks > 1) {
+                    sample->Playing = false;
+                }
+            }
         }
-        if (bytes <= 0 && SDL_AudioStreamAvailable(sample->Stream) <= 0) {
-            ++sample->EmptyCallbacks;
-            if (sample->EmptyCallbacks > 1) {
-                sample->Playing = false;
+
+        if (State->ReverseChannels && State->Output.channels == 2 && State->Output.format == AUDIO_S16SYS) {
+            Sint16* frames = reinterpret_cast<Sint16*>(output);
+            for (int i = 0; i + 1 < length / static_cast<int>(sizeof(Sint16)); i += 2) {
+                std::swap(frames[i], frames[i + 1]);
             }
         }
     }
 
-    if (State->ReverseChannels && State->Output.channels == 2 && State->Output.format == AUDIO_S16SYS) {
-        Sint16* frames = reinterpret_cast<Sint16*>(output);
-        for (int i = 0; i + 1 < length / static_cast<int>(sizeof(Sint16)); i += 2) {
-            std::swap(frames[i], frames[i + 1]);
-        }
+    SDL_AudioStream* Create_Stream(int bits, int channels, int rate)
+    {
+        return SDL_NewAudioStream(Audio_Format(bits),
+                                  static_cast<Uint8>(channels),
+                                  rate,
+                                  State->Output.format,
+                                  State->Output.channels,
+                                  State->Output.freq);
     }
-}
-
-SDL_AudioStream* Create_Stream(int bits, int channels, int rate)
-{
-    return SDL_NewAudioStream(Audio_Format(bits),
-                              static_cast<Uint8>(channels),
-                              rate,
-                              State->Output.format,
-                              State->Output.channels,
-                              State->Output.freq);
-}
-}
+} // namespace
 
 void SoundImp_Buffer_Sample_Data(SampleTrackerTypeImp* sample, const void* data, size_t length)
 {

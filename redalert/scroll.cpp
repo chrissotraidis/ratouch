@@ -96,7 +96,7 @@ void ScrollClass::AI(KeyNumType& input, int x, int y)
         /*
 		**	Special check to not scroll within the special no-scroll regions.
 		*/
-		bool noscroll = !Keyboard->Is_Mouse_Edge_Scroll_Allowed();
+        bool noscroll = !Keyboard->Is_Mouse_Edge_Scroll_Allowed();
 
 #ifdef SDL2_BUILD
         unsigned char scrollDirection = SDIR_NONE;

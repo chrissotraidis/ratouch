@@ -9,40 +9,40 @@
 
 namespace
 {
-const size_t Sector = 2048;
+    const size_t Sector = 2048;
 
-void Write32(unsigned char* destination, uint32_t value)
-{
-    destination[0] = value & 0xFF;
-    destination[1] = (value >> 8) & 0xFF;
-    destination[2] = (value >> 16) & 0xFF;
-    destination[3] = (value >> 24) & 0xFF;
-}
+    void Write32(unsigned char* destination, uint32_t value)
+    {
+        destination[0] = value & 0xFF;
+        destination[1] = (value >> 8) & 0xFF;
+        destination[2] = (value >> 16) & 0xFF;
+        destination[3] = (value >> 24) & 0xFF;
+    }
 
-void Write16(unsigned char* destination, uint16_t value)
-{
-    destination[0] = value & 0xFF;
-    destination[1] = (value >> 8) & 0xFF;
-}
+    void Write16(unsigned char* destination, uint16_t value)
+    {
+        destination[0] = value & 0xFF;
+        destination[1] = (value >> 8) & 0xFF;
+    }
 
-size_t Directory_Record(unsigned char* destination,
-                        uint32_t sector,
-                        uint32_t size,
-                        unsigned char flags,
-                        const unsigned char* name,
-                        size_t nameLength)
-{
-    const size_t length = 33 + nameLength + (nameLength % 2 == 0 ? 1 : 0);
-    std::memset(destination, 0, length);
-    destination[0] = static_cast<unsigned char>(length);
-    Write32(destination + 2, sector);
-    Write32(destination + 10, size);
-    destination[25] = flags;
-    destination[32] = static_cast<unsigned char>(nameLength);
-    std::memcpy(destination + 33, name, nameLength);
-    return length;
-}
-}
+    size_t Directory_Record(unsigned char* destination,
+                            uint32_t sector,
+                            uint32_t size,
+                            unsigned char flags,
+                            const unsigned char* name,
+                            size_t nameLength)
+    {
+        const size_t length = 33 + nameLength + (nameLength % 2 == 0 ? 1 : 0);
+        std::memset(destination, 0, length);
+        destination[0] = static_cast<unsigned char>(length);
+        Write32(destination + 2, sector);
+        Write32(destination + 10, size);
+        destination[25] = flags;
+        destination[32] = static_cast<unsigned char>(nameLength);
+        std::memcpy(destination + 33, name, nameLength);
+        return length;
+    }
+} // namespace
 
 int main()
 {
@@ -69,7 +69,8 @@ int main()
     const unsigned char parent = 1;
     offset += Directory_Record(directory + offset, 20, Sector, 2, &parent, 1);
     const char mixName[] = "REDALERT.MIX;1";
-    Directory_Record(directory + offset, 21, 30, 0, reinterpret_cast<const unsigned char*>(mixName), sizeof(mixName) - 1);
+    Directory_Record(
+        directory + offset, 21, 30, 0, reinterpret_cast<const unsigned char*>(mixName), sizeof(mixName) - 1);
     unsigned char* mix = image.data() + 21 * Sector;
     Write16(mix, 1);
     Write32(mix + 2, 12);

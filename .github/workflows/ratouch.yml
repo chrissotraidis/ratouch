@@ -4,6 +4,10 @@ on:
   pull_request:
   push:
 
+# Public releases are published separately after review.
+permissions:
+  contents: read
+
 jobs:
   public-repo-contract:
     runs-on: ubuntu-latest

@@ -481,9 +481,8 @@ void Set_Video_Cursor_Clip(bool clipped)
             SDL_SetWindowGrab(window, SDL_FALSE);
         } else {
             SDL_SetWindowGrab(window, SDL_TRUE);
-            wants_relative = Video_Use_Relative_Mouse(Settings.Mouse.RawInput, Settings.Video.Windowed)
-                ? SDL_TRUE
-                : SDL_FALSE;
+            wants_relative =
+                Video_Use_Relative_Mouse(Settings.Mouse.RawInput, Settings.Video.Windowed) ? SDL_TRUE : SDL_FALSE;
         }
 #endif
 
@@ -507,8 +506,7 @@ void Set_Video_Cursor_Clip(bool clipped)
             } else {
                 float window_x = 0.0f;
                 float window_y = 0.0f;
-                Video_Game_Point_To_Window(
-                    Current_Presentation_Geometry(), hwcursor.X, hwcursor.Y, window_x, window_y);
+                Video_Game_Point_To_Window(Current_Presentation_Geometry(), hwcursor.X, hwcursor.Y, window_x, window_y);
                 SDL_WarpMouseInWindow(window, static_cast<int>(window_x), static_cast<int>(window_y));
             }
         }
@@ -903,8 +901,8 @@ public:
         if (flags & GBC_VISIBLE) {
             windowSurface = SDL_CreateRGBSurfaceWithFormat(0, w, h, SDL_BITSPERPIXEL(pixel_format), pixel_format);
             texture = SDL_CreateTexture(renderer, windowSurface->format->format, SDL_TEXTUREACCESS_STREAMING, w, h);
-            SDL_SetTextureScaleMode(
-                texture, Settings.Video.Scaler == "linear" ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
+            SDL_SetTextureScaleMode(texture,
+                                    Settings.Video.Scaler == "linear" ? SDL_ScaleModeLinear : SDL_ScaleModeNearest);
             frontSurface = this;
         }
     }
@@ -984,8 +982,7 @@ public:
 
         int output_w = 0;
         int output_h = 0;
-        if (SDL_GetRendererOutputSize(renderer, &output_w, &output_h) == 0
-            && output_w > 0 && output_h > 0
+        if (SDL_GetRendererOutputSize(renderer, &output_w, &output_h) == 0 && output_w > 0 && output_h > 0
             && (output_w != render_output_w || output_h != render_output_h || render_dst.w <= 0 || render_dst.h <= 0)) {
             Update_HWCursor_Settings();
         }

@@ -4,17 +4,17 @@
 
 namespace
 {
-float Clamp(float value, float minimum, float maximum)
-{
-    return std::max(minimum, std::min(value, maximum));
-}
-}
+    float Clamp(float value, float minimum, float maximum)
+    {
+        return std::max(minimum, std::min(value, maximum));
+    }
+} // namespace
 
 bool Video_Geometry_Is_Valid(const VideoPresentationGeometry& geometry)
 {
     return geometry.WindowWidth > 0 && geometry.WindowHeight > 0 && geometry.OutputWidth > 0
-        && geometry.OutputHeight > 0 && geometry.GameWidth > 0 && geometry.GameHeight > 0
-        && geometry.DestinationWidth > 0 && geometry.DestinationHeight > 0;
+           && geometry.OutputHeight > 0 && geometry.GameWidth > 0 && geometry.GameHeight > 0
+           && geometry.DestinationWidth > 0 && geometry.DestinationHeight > 0;
 }
 
 bool Video_Window_Point_In_Presentation(const VideoPresentationGeometry& geometry, float window_x, float window_y)
@@ -26,7 +26,7 @@ bool Video_Window_Point_In_Presentation(const VideoPresentationGeometry& geometr
     const float output_x = window_x * geometry.OutputWidth / geometry.WindowWidth;
     const float output_y = window_y * geometry.OutputHeight / geometry.WindowHeight;
     return output_x >= geometry.DestinationX && output_x < geometry.DestinationX + geometry.DestinationWidth
-        && output_y >= geometry.DestinationY && output_y < geometry.DestinationY + geometry.DestinationHeight;
+           && output_y >= geometry.DestinationY && output_y < geometry.DestinationY + geometry.DestinationHeight;
 }
 
 bool Video_Presentation_Button_Event(bool pressed, bool inside_presentation, bool& accepted)
@@ -80,10 +80,10 @@ void Video_Window_Delta_To_Game(const VideoPresentationGeometry& geometry,
         return;
     }
 
-    game_dx = window_dx * geometry.OutputWidth * geometry.GameWidth
-        / (geometry.WindowWidth * geometry.DestinationWidth);
-    game_dy = window_dy * geometry.OutputHeight * geometry.GameHeight
-        / (geometry.WindowHeight * geometry.DestinationHeight);
+    game_dx =
+        window_dx * geometry.OutputWidth * geometry.GameWidth / (geometry.WindowWidth * geometry.DestinationWidth);
+    game_dy =
+        window_dy * geometry.OutputHeight * geometry.GameHeight / (geometry.WindowHeight * geometry.DestinationHeight);
 }
 
 void Video_Game_Point_To_Window(const VideoPresentationGeometry& geometry,
