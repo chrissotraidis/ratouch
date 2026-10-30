@@ -55,7 +55,7 @@ jobs:
     - name: Verify SDL2 architectures
       run: |
         for arch in arm64 x86_64; do
-          lipo -verify_arch "$arch" "$CMAKE_PREFIX_PATH/lib/libSDL2.dylib"
+          lipo "$CMAKE_PREFIX_PATH/lib/libSDL2.dylib" -verify_arch "$arch"
         done
 
     - name: Build Vanilla Conquer
@@ -68,8 +68,8 @@ jobs:
       if: ${{ matrix.preset != 'testing' &&  matrix.preset != 'nonet' }}
       run: |
         for arch in arm64 x86_64; do
-          lipo -verify_arch "$arch" build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app/Contents/MacOS/vanillatd
-          lipo -verify_arch "$arch" build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.app/Contents/MacOS/RAtouch
+          lipo build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app/Contents/MacOS/vanillatd -verify_arch "$arch"
+          lipo build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.app/Contents/MacOS/RAtouch -verify_arch "$arch"
         done
         dsymutil build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app/Contents/MacOS/vanillatd -o build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.dSYM
         dsymutil build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.app/Contents/MacOS/RAtouch -o build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.dSYM
