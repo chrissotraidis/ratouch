@@ -42,7 +42,7 @@ Tap selects or orders. One finger drag-selects. Two fingers move the map. Pinch 
 
 The campaigns, skirmish AI, movies, music, saves, production sidebar, hotkeys, and simulation rules remain engine-owned. RAtouch changes the platform and control layers around them.
 
-> **Current availability:** public-source alpha with an [unsigned v0.1.0 IPA](https://github.com/chrissotraidis/ratouch/releases/download/v0.1.0/RAtouch-v0.1.0-unsigned.ipa) for self-signing and sideloading. Apple-silicon macOS and the arm64 iPad Simulator remain available as source builds. A signed Mac DMG and TestFlight build are not published.
+> **Current availability:** public-source alpha with an [unsigned v0.1.0 IPA](https://github.com/chrissotraidis/ratouch/releases/download/v0.1.1/RAtouch-v0.1.1-unsigned.ipa) for self-signing and sideloading. Apple-silicon macOS and the arm64 iPad Simulator remain available as source builds. A signed Mac DMG and TestFlight build are not published.
 
 This repository contains engine, platform code, project artwork, and one reviewed gameplay capture. **It does not contain playable commercial game data.** You provide legally acquired compatible data on your own device.
 
@@ -60,7 +60,7 @@ This repository contains engine, platform code, project artwork, and one reviewe
 | Public source | **v0.1.0** | Browse the tagged source or build from `main`. |
 | macOS source build | **Verified on Apple silicon** | Build `RAtouch.app` locally with CMake and SDL2. |
 | iPad Simulator source build | **Verified** | Build, install, and launch with the provided script and `simctl`. |
-| Downloadable `.ipa` | **[v0.1.0 unsigned IPA](https://github.com/chrissotraidis/ratouch/releases/download/v0.1.0/RAtouch-v0.1.0-unsigned.ipa)** | Sign it with your own Apple account, then sideload it. No game data is included. |
+| Downloadable `.ipa` | **[v0.1.0 unsigned IPA](https://github.com/chrissotraidis/ratouch/releases/download/v0.1.1/RAtouch-v0.1.1-unsigned.ipa)** | Sign it with your own Apple account, then sideload it. No game data is included. |
 | Physical iPad acceptance | **Not complete** | The IPA is a verified arm64 iPhoneOS package, not a claim of completed physical-device gameplay acceptance. |
 | TestFlight / App Store | **Not announced** | No public listing or TestFlight exists. |
 
@@ -166,7 +166,7 @@ Your imported game files, settings, and saves remain local. RAtouch does not inc
 
 ## Project status
 
-RAtouch v0.1.0 is a packaged public alpha. Physical-device acceptance, signed distribution, and long-session audio testing remain open gates.
+RAtouch v0.1.1 is a packaged public alpha. Physical-device acceptance, signed distribution, and long-session audio testing remain open gates.
 
 | Area | Current evidence |
 | --- | --- |
@@ -253,7 +253,7 @@ The build script also prints the generated `.app` path. On first launch, choose 
 
 ### Unsigned IPA
 
-[Download `RAtouch-v0.1.0-unsigned.ipa`](https://github.com/chrissotraidis/ratouch/releases/download/v0.1.0/RAtouch-v0.1.0-unsigned.ipa). It is an arm64 iPhoneOS package for iOS/iPadOS 15.0 or newer. RAtouch is designed and documented for iPad; the package metadata also permits iPhone installation, but iPhone gameplay is not a supported product target.
+[Download `RAtouch-v0.1.1-unsigned.ipa`](https://github.com/chrissotraidis/ratouch/releases/download/v0.1.1/RAtouch-v0.1.1-unsigned.ipa). It is an arm64 iPhoneOS package for iOS/iPadOS 15.0 or newer. RAtouch is designed and documented for iPad; the package metadata also permits iPhone installation, but iPhone gameplay is not a supported product target.
 
 The IPA is deliberately unsigned. Use your preferred sideloading tool to sign it with your own Apple account and install it on a device you control. Free Apple account signatures normally expire and must be renewed; exact limits depend on Apple's current policy and the tool you use. The release does not include a provisioning profile, certificate, commercial game data, or saves.
 

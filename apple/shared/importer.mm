@@ -181,14 +181,14 @@ NSUInteger Import_Asset_URLs_To_Root(NSArray<NSURL*>* urls, NSURL* destination, 
             if (!Ratouch_Extract_ISO_MIX_Files(url.fileSystemRepresentation,
                                                iso_staging.path.fileSystemRepresentation,
                                                extracted,
-                                               iso_error)
-                && (reported_error == nullptr || *reported_error == nil)) {
+                                               iso_error)) {
                 Set_Import_Error(reported_error, 2, [NSString stringWithUTF8String:iso_error.c_str()]);
-            } else {
-                for (const std::string& name : extracted) {
-                    [candidates addObject:[iso_staging URLByAppendingPathComponent:
-                                                         [NSString stringWithUTF8String:name.c_str()]]];
-                }
+                [files removeItemAtURL:transaction error:nil];
+                return 0;
+            }
+            for (const std::string& name : extracted) {
+                [candidates addObject:[iso_staging URLByAppendingPathComponent:
+                                                     [NSString stringWithUTF8String:name.c_str()]]];
             }
         }
     }

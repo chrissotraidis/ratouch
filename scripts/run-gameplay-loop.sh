@@ -38,6 +38,9 @@ ctest \
     --output-on-failure \
     -L ratouch_gameplay_loop
 
+echo "Gameplay loop: check transactional importer failures"
+"$repo_root/scripts/test-importer.sh"
+
 echo "Gameplay loop: reject commercial assets and broken public documentation"
 python3 "$repo_root/scripts/verify-public-repo.py"
 
