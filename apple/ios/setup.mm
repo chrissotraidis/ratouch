@@ -204,7 +204,7 @@ void Present_Setup(void (^ready)(void));
         [url stopAccessingSecurityScopedResource];
     }
 
-    if (Has_Core_Data()) {
+    if (count > 0 && Has_Core_Data()) {
         [self refreshStatusWithMessage:[NSString stringWithFormat:@"Imported %lu MIX file%@. Ready to continue.",
                                                                  (unsigned long)count,
                                                                  count == 1 ? @"" : @"s"]];
