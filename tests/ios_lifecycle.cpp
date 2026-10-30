@@ -8,27 +8,27 @@
 
 namespace
 {
-std::atomic<int> Saves(0);
-std::atomic<int> FocusLosses(0);
+    std::atomic<int> Saves(0);
+    std::atomic<int> FocusLosses(0);
 
-void Autosave()
-{
-    ++Saves;
-}
+    void Autosave()
+    {
+        ++Saves;
+    }
 
-void FocusLoss()
-{
-    ++FocusLosses;
-}
+    void FocusLoss()
+    {
+        ++FocusLosses;
+    }
 
-void Push(uint32_t type)
-{
-    SDL_Event event;
-    SDL_zero(event);
-    event.type = type;
-    assert(SDL_PushEvent(&event) == 1);
-}
-}
+    void Push(uint32_t type)
+    {
+        SDL_Event event;
+        SDL_zero(event);
+        event.type = type;
+        assert(SDL_PushEvent(&event) == 1);
+    }
+} // namespace
 
 int main()
 {

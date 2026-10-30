@@ -24,58 +24,58 @@ VQAHandle* AudioVQAHandle;
 
 namespace
 {
-bool Queue_Audio(VQAHandle* handle)
-{
-    VQAConfig* config = &handle->Config;
-    VQAAudio* audio = &handle->VQABuf->Audio;
-    if (audio->SDLSample == nullptr || audio->IsLoaded[audio->field_10] != 1) {
-        return false;
-    }
-
-    SoundImp_Buffer_Sample_Data(audio->SDLSample, &audio->Buffer[audio->PlayPosition], config->HMIBufSize);
-    audio->IsLoaded[audio->field_10] = 0;
-
-    audio->field_B8 = audio->field_B0;
-    audio->field_B0 += config->HMIBufSize;
-    if (audio->field_B0 >= audio->BuffBytes) {
-        audio->field_B0 = 0;
-    }
-
-    audio->field_14 = audio->field_10 + 1;
-    if (audio->field_14 >= audio->NumAudBlocks) {
-        audio->field_14 = 0;
-    }
-
-    audio->PlayPosition += config->HMIBufSize;
-    ++audio->field_10;
-    if (audio->PlayPosition >= static_cast<unsigned>(config->AudioBufSize)) {
-        audio->PlayPosition = 0;
-        audio->field_10 = 0;
-    }
-    ++audio->field_B4;
-    return true;
-}
-
-void Service_Audio(VQAHandle* handle)
-{
-    if (VQAAudioPaused || handle == nullptr) {
-        return;
-    }
-    VQAAudio* audio = &handle->VQABuf->Audio;
-    bool queued = false;
-    while (audio->SDLSample != nullptr && SoundImp_Get_Sample_Free_Buffer_Count(audio->SDLSample) > 0) {
-        if (!Queue_Audio(handle)) {
-            break;
+    bool Queue_Audio(VQAHandle* handle)
+    {
+        VQAConfig* config = &handle->Config;
+        VQAAudio* audio = &handle->VQABuf->Audio;
+        if (audio->SDLSample == nullptr || audio->IsLoaded[audio->field_10] != 1) {
+            return false;
         }
-        queued = true;
+
+        SoundImp_Buffer_Sample_Data(audio->SDLSample, &audio->Buffer[audio->PlayPosition], config->HMIBufSize);
+        audio->IsLoaded[audio->field_10] = 0;
+
+        audio->field_B8 = audio->field_B0;
+        audio->field_B0 += config->HMIBufSize;
+        if (audio->field_B0 >= audio->BuffBytes) {
+            audio->field_B0 = 0;
+        }
+
+        audio->field_14 = audio->field_10 + 1;
+        if (audio->field_14 >= audio->NumAudBlocks) {
+            audio->field_14 = 0;
+        }
+
+        audio->PlayPosition += config->HMIBufSize;
+        ++audio->field_10;
+        if (audio->PlayPosition >= static_cast<unsigned>(config->AudioBufSize)) {
+            audio->PlayPosition = 0;
+            audio->field_10 = 0;
+        }
+        ++audio->field_B4;
+        return true;
     }
-    if (queued) {
-        // An audio callback can briefly drain the stream between VQA frames.
-        // Starting is idempotent and makes newly queued data resume immediately.
-        SoundImp_Start_Sample(audio->SDLSample);
+
+    void Service_Audio(VQAHandle* handle)
+    {
+        if (VQAAudioPaused || handle == nullptr) {
+            return;
+        }
+        VQAAudio* audio = &handle->VQABuf->Audio;
+        bool queued = false;
+        while (audio->SDLSample != nullptr && SoundImp_Get_Sample_Free_Buffer_Count(audio->SDLSample) > 0) {
+            if (!Queue_Audio(handle)) {
+                break;
+            }
+            queued = true;
+        }
+        if (queued) {
+            // An audio callback can briefly drain the stream between VQA frames.
+            // Starting is idempotent and makes newly queued data resume immediately.
+            SoundImp_Start_Sample(audio->SDLSample);
+        }
     }
-}
-}
+} // namespace
 
 int VQA_StartTimerInt(VQAHandle*, int)
 {
@@ -106,9 +106,8 @@ int VQA_OpenAudio(VQAHandle* handle, void*)
     audio->SDLSample = nullptr;
 
     if (config->AudioRate == -1) {
-        config->AudioRate = header->FPS == config->FrameRate
-                                ? audio->SampleRate
-                                : config->FrameRate * audio->SampleRate / header->FPS;
+        config->AudioRate =
+            header->FPS == config->FrameRate ? audio->SampleRate : config->FrameRate * audio->SampleRate / header->FPS;
     }
 
     audio->field_C0 = 1;

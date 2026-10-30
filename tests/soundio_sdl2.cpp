@@ -7,12 +7,12 @@
 
 namespace
 {
-int Fail(const char* message)
-{
-    std::fprintf(stderr, "%s\n", message);
-    return 1;
-}
-}
+    int Fail(const char* message)
+    {
+        std::fprintf(stderr, "%s\n", message);
+        return 1;
+    }
+} // namespace
 
 int main()
 {

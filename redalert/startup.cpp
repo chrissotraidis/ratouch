@@ -103,23 +103,23 @@ void Print_Error_Exit(char* string);
 #if defined(RATOUCH_MACOS_BUILD) || defined(IOS_BUILD)
 namespace
 {
-int Ratouch_Volume_Percent(fixed volume)
-{
-    const int percent = volume * 100;
-    return percent < 0 ? 0 : (percent > 100 ? 100 : percent);
-}
-
-void Ratouch_Save_Video_Settings()
-{
-    CCFileClass file(CONFIG_FILE_NAME);
-    INIClass ini;
-    if (file.Is_Available()) {
-        ini.Load(file);
+    int Ratouch_Volume_Percent(fixed volume)
+    {
+        const int percent = volume * 100;
+        return percent < 0 ? 0 : (percent > 100 ? 100 : percent);
     }
-    Settings.Save(ini);
-    ini.Save(file);
-}
-}
+
+    void Ratouch_Save_Video_Settings()
+    {
+        CCFileClass file(CONFIG_FILE_NAME);
+        INIClass ini;
+        if (file.Is_Available()) {
+            ini.Load(file);
+        }
+        Settings.Save(ini);
+        ini.Save(file);
+    }
+} // namespace
 
 int Ratouch_Apple_App_Setting(int setting)
 {
