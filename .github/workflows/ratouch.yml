@@ -34,7 +34,9 @@ jobs:
       - name: Build
         run: cmake --build build/ratouch-macos
       - name: Test
-        run: ctest --test-dir build/ratouch-macos --output-on-failure
+        run: |
+          ctest --test-dir build/ratouch-macos --output-on-failure
+          scripts/test-importer.sh
 
   ios-simulator-build:
     runs-on: macos-14
