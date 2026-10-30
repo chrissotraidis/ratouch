@@ -24,38 +24,38 @@ void Prog_End(char const*, bool)
 
 namespace
 {
-void Write16(std::vector<unsigned char>& bytes, size_t offset, uint16_t value)
-{
-    bytes[offset] = value & 0xFF;
-    bytes[offset + 1] = (value >> 8) & 0xFF;
-}
+    void Write16(std::vector<unsigned char>& bytes, size_t offset, uint16_t value)
+    {
+        bytes[offset] = value & 0xFF;
+        bytes[offset + 1] = (value >> 8) & 0xFF;
+    }
 
-void Write32(std::vector<unsigned char>& bytes, size_t offset, uint32_t value)
-{
-    bytes[offset] = value & 0xFF;
-    bytes[offset + 1] = (value >> 8) & 0xFF;
-    bytes[offset + 2] = (value >> 16) & 0xFF;
-    bytes[offset + 3] = (value >> 24) & 0xFF;
-}
+    void Write32(std::vector<unsigned char>& bytes, size_t offset, uint32_t value)
+    {
+        bytes[offset] = value & 0xFF;
+        bytes[offset + 1] = (value >> 8) & 0xFF;
+        bytes[offset + 2] = (value >> 16) & 0xFF;
+        bytes[offset + 3] = (value >> 24) & 0xFF;
+    }
 
-std::vector<unsigned char> BuildMix(const char* entry_name, const std::vector<unsigned char>& payload)
-{
-    std::vector<unsigned char> mix(18 + payload.size(), 0);
-    Write16(mix, 0, 1);
-    Write32(mix, 2, payload.size());
-    Write32(mix, 6, Calculate_CRC(entry_name, std::strlen(entry_name)));
-    Write32(mix, 10, 0);
-    Write32(mix, 14, payload.size());
-    std::copy(payload.begin(), payload.end(), mix.begin() + 18);
-    return mix;
-}
+    std::vector<unsigned char> BuildMix(const char* entry_name, const std::vector<unsigned char>& payload)
+    {
+        std::vector<unsigned char> mix(18 + payload.size(), 0);
+        Write16(mix, 0, 1);
+        Write32(mix, 2, payload.size());
+        Write32(mix, 6, Calculate_CRC(entry_name, std::strlen(entry_name)));
+        Write32(mix, 10, 0);
+        Write32(mix, 14, payload.size());
+        std::copy(payload.begin(), payload.end(), mix.begin() + 18);
+        return mix;
+    }
 
-void Write(const std::string& path, const std::vector<unsigned char>& bytes)
-{
-    std::ofstream output(path, std::ios::binary | std::ios::trunc);
-    output.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
-}
-}
+    void Write(const std::string& path, const std::vector<unsigned char>& bytes)
+    {
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        output.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+    }
+} // namespace
 
 int main()
 {

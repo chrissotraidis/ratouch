@@ -280,8 +280,7 @@ void* Open_Animation(char const* file_name,
     // NOTE:"THIS IS A BAD THING. SINCE sizeof(SysAnimHeaderType) CHANGED, THE ANIMATE.EXE
     // UTILITY DID NOT KNOW I UPDATED IT, IT ADDS IT TO largest_frame_size BEFORE SAVING
     // IT TO THE FILE.  THIS MEANS I HAVE TO ADD THESE charS ON NOW FOR IT TO WORK.
-    delta_buffer_size = WSA_Delta_Payload_Size(file_header.largest_frame_size, frame0_size)
-        + sizeof(SysAnimHeaderType);
+    delta_buffer_size = WSA_Delta_Payload_Size(file_header.largest_frame_size, frame0_size) + sizeof(SysAnimHeaderType);
     min_buffer_size = target_buffer_size + delta_buffer_size;
     max_buffer_size = min_buffer_size + file_buffer_size;
 
@@ -933,13 +932,11 @@ static bool Apply_Delta(SysAnimHeaderType* sys_header, int curr_frame, char* des
 
         frame_offset = Get_Resident_Frame_Offset(sys_header->file_buffer, curr_frame);
         const unsigned int frame_end = Get_Resident_Frame_Offset(sys_header->file_buffer, curr_frame + 1);
-        const uintptr_t resident_offset = reinterpret_cast<uintptr_t>(sys_header->file_buffer)
-            - reinterpret_cast<uintptr_t>(sys_header);
+        const uintptr_t resident_offset =
+            reinterpret_cast<uintptr_t>(sys_header->file_buffer) - reinterpret_cast<uintptr_t>(sys_header);
         if (resident_offset > sys_header->anim_mem_size
-            || !WSA_Delta_Range_Is_Valid(frame_offset,
-                                         frame_end,
-                                         sys_header->largest_frame_size,
-                                         sys_header->anim_mem_size - resident_offset)) {
+            || !WSA_Delta_Range_Is_Valid(
+                frame_offset, frame_end, sys_header->largest_frame_size, sys_header->anim_mem_size - resident_offset)) {
             return false;
         }
         frame_data_size = frame_end - frame_offset;
@@ -966,10 +963,8 @@ static bool Apply_Delta(SysAnimHeaderType* sys_header, int curr_frame, char* des
         const unsigned int frame_end = Get_File_Frame_Offset(file_handle, curr_frame + 1, palette_adjust);
 
         if (file_size <= 0
-            || !WSA_Delta_Range_Is_Valid(frame_offset,
-                                         frame_end,
-                                         sys_header->largest_frame_size,
-                                         static_cast<unsigned int>(file_size))) {
+            || !WSA_Delta_Range_Is_Valid(
+                frame_offset, frame_end, sys_header->largest_frame_size, static_cast<unsigned int>(file_size))) {
             return (false);
         }
         frame_data_size = frame_end - frame_offset;

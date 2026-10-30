@@ -5,16 +5,25 @@
 
 namespace
 {
-void Expect_Near(float actual, float expected)
-{
-    assert(std::fabs(actual - expected) < 0.01f);
-}
-}
+    void Expect_Near(float actual, float expected)
+    {
+        assert(std::fabs(actual - expected) < 0.01f);
+    }
+} // namespace
 
 int main()
 {
     const VideoPresentationGeometry retina_letterbox = {
-        1512, 982, 3024, 1964, 640, 400, 0, 37, 3024, 1890,
+        1512,
+        982,
+        3024,
+        1964,
+        640,
+        400,
+        0,
+        37,
+        3024,
+        1890,
     };
 
     float x = 0.0f;
@@ -57,7 +66,16 @@ int main()
     Expect_Near(y, 491.0f);
 
     const VideoPresentationGeometry zoomed = {
-        1512, 982, 3024, 1964, 640, 400, -756, -435, 4536, 2835,
+        1512,
+        982,
+        3024,
+        1964,
+        640,
+        400,
+        -756,
+        -435,
+        4536,
+        2835,
     };
     Video_Window_Point_To_Game(zoomed, 756.0f, 491.25f, x, y);
     Expect_Near(x, 320.0f);

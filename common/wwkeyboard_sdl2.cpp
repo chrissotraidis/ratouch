@@ -111,8 +111,7 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
             PointerOwner.Observe_Pointer();
 
             const WWMovieInputAction movie_action = MouseMovieInput.Handle(
-                InMovie,
-                event.type == SDL_MOUSEBUTTONDOWN ? WWMovieInputPhase::Down : WWMovieInputPhase::Up);
+                InMovie, event.type == SDL_MOUSEBUTTONDOWN ? WWMovieInputPhase::Down : WWMovieInputPhase::Up);
             if (movie_action != WWMovieInputAction::Pass) {
                 if (movie_action == WWMovieInputAction::Skip) {
                     Put_Key_Message(VK_ESCAPE);
@@ -149,8 +148,7 @@ void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
             }
 
             const bool released = event.type == SDL_MOUSEBUTTONUP;
-            if (!Video_Presentation_Button_Event(
-                    !released, inside_presentation, MouseButtonAccepted[button_index])) {
+            if (!Video_Presentation_Button_Event(!released, inside_presentation, MouseButtonAccepted[button_index])) {
                 break;
             }
 

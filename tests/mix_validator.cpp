@@ -8,26 +8,26 @@
 
 namespace
 {
-void Write16(std::vector<unsigned char>& bytes, size_t offset, uint16_t value)
-{
-    bytes[offset] = value & 0xFF;
-    bytes[offset + 1] = (value >> 8) & 0xFF;
-}
+    void Write16(std::vector<unsigned char>& bytes, size_t offset, uint16_t value)
+    {
+        bytes[offset] = value & 0xFF;
+        bytes[offset + 1] = (value >> 8) & 0xFF;
+    }
 
-void Write32(std::vector<unsigned char>& bytes, size_t offset, uint32_t value)
-{
-    bytes[offset] = value & 0xFF;
-    bytes[offset + 1] = (value >> 8) & 0xFF;
-    bytes[offset + 2] = (value >> 16) & 0xFF;
-    bytes[offset + 3] = (value >> 24) & 0xFF;
-}
+    void Write32(std::vector<unsigned char>& bytes, size_t offset, uint32_t value)
+    {
+        bytes[offset] = value & 0xFF;
+        bytes[offset + 1] = (value >> 8) & 0xFF;
+        bytes[offset + 2] = (value >> 16) & 0xFF;
+        bytes[offset + 3] = (value >> 24) & 0xFF;
+    }
 
-void Write(const char* path, const std::vector<unsigned char>& bytes)
-{
-    std::ofstream output(path, std::ios::binary | std::ios::trunc);
-    output.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
-}
-}
+    void Write(const char* path, const std::vector<unsigned char>& bytes)
+    {
+        std::ofstream output(path, std::ios::binary | std::ios::trunc);
+        output.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+    }
+} // namespace
 
 int main()
 {

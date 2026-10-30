@@ -2358,7 +2358,7 @@ static void Init_Secondary_Mixfiles(void)
     */
     if (ConquerMix == NULL)
         ConquerMix = new MFCD("CONQUER.MIX", &FastKey); // Cached.
-                                                    //	new MFCD("TRANSIT.MIX", &FastKey);
+                                                        //	new MFCD("TRANSIT.MIX", &FastKey);
 
     if (GeneralMix == NULL)
         GeneralMix = new MFCD("GENERAL.MIX", &FastKey); // Never cached.

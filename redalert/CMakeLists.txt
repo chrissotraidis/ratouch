@@ -310,6 +310,11 @@ if(BUILD_VANILLARA)
     target_compile_definitions(VanillaRA PUBLIC $<$<CONFIG:Debug>:_DEBUG> ${VANILLA_DEFS})
     if(APPLE AND MAKE_BUNDLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
         target_compile_definitions(VanillaRA PRIVATE RATOUCH_MACOS_BUILD)
+        if(SDL2)
+            # Keep RA's shell hooks out of commonv, which also serves TD/tests.
+            # This target's keyboard supplies the symbols instead of the generic archive member.
+            target_sources(VanillaRA PRIVATE "${CMAKE_SOURCE_DIR}/common/wwkeyboard_sdl2.cpp")
+        endif()
         target_link_options(VanillaRA PRIVATE "LINKER:-framework,AppKit")
     endif()
     target_include_directories(VanillaRA PUBLIC ${CMAKE_SOURCE_DIR} .)

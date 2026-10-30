@@ -4,9 +4,13 @@ on:
   pull_request:
   push:
 
+# Public releases are published separately after review.
+permissions:
+  contents: read
+
 jobs:
   vanilla-macos:
-    runs-on: macos-14
+    runs-on: macos-15
     strategy:
       matrix:
         preset: [release, internal, testing, nonet]
@@ -18,75 +22,72 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
     
-    - name: Set Git Info
+    - name: Set build paths and Git info
       id: gitinfo
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      run: |
+        echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        echo "CMAKE_PREFIX_PATH=$RUNNER_TEMP/ratouch-deps" >> "$GITHUB_ENV"
 
-    - name: Setting up Cache-Key
-      run: echo "DEP_CACHE_KEY=$(curl 'https://ports.macports.org/api/v1/ports/dylibbundler/?format=json' | grep -ioE '("version":).[^,]*')-$(curl 'https://ports.macports.org/api/v1/ports/libsdl2/?format=json' | grep -ioE '("version":).[^,]*')-$(curl 'https://ports.macports.org/api/v1/ports/openal-soft/?format=json' | grep -ioE '("version":).[^,]*')" >> $GITHUB_ENV
-
-    - name: Printing Cache-Key
-      run: echo $DEP_CACHE_KEY
-
-    - name: Restore cache
+    - name: Restore SDL2 cache
       id: dep-cache
       uses: actions/cache@v4
-      env:
-        cache-name: cache-dependencies
       with:
-        path: ~/macports
-        key: ${{ env.DEP_CACHE_KEY }}
-    
-    - name: Install homebrew deps
-      run: |
-        brew install imagemagick dylibbundler
-    
-    - if: ${{ steps.dep-cache.outputs.cache-hit != 'true' }}
-      name: Install macport dependencies
-      run: |
-        wget -q https://github.com/macports/macports-base/releases/download/v2.10.5/MacPorts-2.10.5-14-Sonoma.pkg
-        sudo installer -pkg ./MacPorts-2.10.5-14-Sonoma.pkg -target /
-        export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
-        sudo port selfupdate -N
-        sudo port install libsdl2 +universal -N
-        sudo port install openal-soft +universal -N
-        mkdir ~/macports
-        sudo cp -R /opt/local ~/macports
-        sudo chown -R $USER:staff ~/macports
+        path: ${{ env.CMAKE_PREFIX_PATH }}
+        key: macos-15-universal2-sdl2-${{ hashFiles('.github/workflows/macos.yml') }}
 
-    - if: ${{ steps.dep-cache.outputs.cache-hit == 'true' }}
-      name: Restore macport dependencies from cache
+    - name: Install homebrew deps
+      run: brew install imagemagick dylibbundler
+
+    # macOS uses SDL audio, so OpenAL and its compiler toolchain are unnecessary.
+    - name: Build universal SDL2
+      if: ${{ steps.dep-cache.outputs.cache-hit != 'true' }}
       run: |
-        sudo cp -R ~/macports/local /opt/local
+        curl --fail --location --retry 3 --output "$RUNNER_TEMP/SDL2.tar.gz" https://www.libsdl.org/release/SDL2-2.32.10.tar.gz
+        echo "5f5993c530f084535c65a6879e9b26ad441169b3e25d789d83287040a9ca5165  $RUNNER_TEMP/SDL2.tar.gz" | shasum -a 256 --check
+        tar -xzf "$RUNNER_TEMP/SDL2.tar.gz" -C "$RUNNER_TEMP"
+        cmake -S "$RUNNER_TEMP/SDL2-2.32.10" -B "$RUNNER_TEMP/sdl2-build" -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$CMAKE_PREFIX_PATH" \
+          -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+          -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST=OFF -DSDL_TESTS=OFF
+        cmake --build "$RUNNER_TEMP/sdl2-build" --parallel 3
+        cmake --install "$RUNNER_TEMP/sdl2-build"
+
+    - name: Verify SDL2 architectures
+      run: |
+        for arch in arm64 x86_64; do
+          lipo "$CMAKE_PREFIX_PATH/lib/libSDL2.dylib" -verify_arch "$arch"
+        done
 
     - name: Build Vanilla Conquer
       env:
         CMAKE_OSX_ARCHITECTURES: "arm64;x86_64"
         VC_CXX_FLAGS: "-w;-Wwrite-strings;-Werror=write-strings"
-      run: |
-        export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
-        cmake --workflow --preset ${{ matrix.preset }}
+      run: cmake --workflow --preset ${{ matrix.preset }}
 
     - name: Create archives
       if: ${{ matrix.preset != 'testing' &&  matrix.preset != 'nonet' }}
-      run: |  
+      run: |
+        for arch in arm64 x86_64; do
+          lipo build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app/Contents/MacOS/vanillatd -verify_arch "$arch"
+          lipo build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.app/Contents/MacOS/RAtouch -verify_arch "$arch"
+        done
         dsymutil build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app/Contents/MacOS/vanillatd -o build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.dSYM
-        dsymutil build/${{ matrix.preset }}/RelWithDebInfo/vanillara.app/Contents/MacOS/vanillara -o build/${{ matrix.preset }}/RelWithDebInfo/vanillara.dSYM
+        dsymutil build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.app/Contents/MacOS/RAtouch -o build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.dSYM
         strip -Sx build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app/Contents/MacOS/vanillatd
-        strip -Sx build/${{ matrix.preset }}/RelWithDebInfo/vanillara.app/Contents/MacOS/vanillara
-        dylibbundler --create-dir --bundle-deps --overwrite-files --dest-dir ./build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app/Contents/libs --fix-file build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app/Contents/MacOS/vanillatd
-        dylibbundler --create-dir --bundle-deps --overwrite-files --dest-dir ./build/${{ matrix.preset }}/RelWithDebInfo/vanillara.app/Contents/libs --fix-file build/${{ matrix.preset }}/RelWithDebInfo/vanillara.app/Contents/MacOS/vanillara
+        strip -Sx build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.app/Contents/MacOS/RAtouch
+        dylibbundler --search-path "$CMAKE_PREFIX_PATH/lib" --create-dir --bundle-deps --overwrite-files --dest-dir ./build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app/Contents/libs --fix-file build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app/Contents/MacOS/vanillatd
+        dylibbundler --search-path "$CMAKE_PREFIX_PATH/lib" --create-dir --bundle-deps --overwrite-files --dest-dir ./build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.app/Contents/libs --fix-file build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.app/Contents/MacOS/RAtouch
         mkdir artifact
-        7z a artifact/vanilla-conquer-${{ matrix.preset }}-macos-clang-universal2-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app ./build/${{ matrix.preset }}/RelWithDebInfo/vanillara.app
-        7z a artifact/vanilla-conquer-${{ matrix.preset }}-macos-clang-universal2-${{ steps.gitinfo.outputs.sha_short }}-debug.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.dSYM ./build/${{ matrix.preset }}/RelWithDebInfo/vanillara.dSYM
+        7z a artifact/vanilla-conquer-${{ matrix.preset }}-macos-clang-universal2-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.app ./build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.app
+        7z a artifact/vanilla-conquer-${{ matrix.preset }}-macos-clang-universal2-${{ steps.gitinfo.outputs.sha_short }}-debug.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillatd.dSYM ./build/${{ matrix.preset }}/RelWithDebInfo/RAtouch.dSYM
 
     - name: Add internal tools to archive
       if: ${{ matrix.preset == 'internal' }}
       run: |
         dsymutil build/${{ matrix.preset }}/RelWithDebInfo/vanillamix -o build/${{ matrix.preset }}/RelWithDebInfo/vanillamix.dSYM
         strip -Sx build/${{ matrix.preset }}/RelWithDebInfo/vanillamix
-        7z a artifact/vanilla-conquer-${{ matrix.preset }}-macos-clang-universal2--${{ steps.gitinfo.outputs.sha_short }}.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillamix
-        7z a artifact/vanilla-conquer-${{ matrix.preset }}-macos-clang-universal2--${{ steps.gitinfo.outputs.sha_short }}-debug.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillamix.dSYM
+        7z a artifact/vanilla-conquer-${{ matrix.preset }}-macos-clang-universal2-${{ steps.gitinfo.outputs.sha_short }}.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillamix
+        7z a artifact/vanilla-conquer-${{ matrix.preset }}-macos-clang-universal2-${{ steps.gitinfo.outputs.sha_short }}-debug.zip ./build/${{ matrix.preset }}/RelWithDebInfo/vanillamix.dSYM
     
     - name: Upload artifact
       if: ${{ matrix.preset != 'testing' &&  matrix.preset != 'nonet' }}
@@ -94,24 +95,3 @@ jobs:
       with:
         name: vanilla-conquer-${{ matrix.preset }}-macos-clang-universal2
         path: artifact
-        
-    - name: Upload development release
-      if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/vanilla' && matrix.preset != 'testing' &&  matrix.preset != 'nonet' }}
-      uses: softprops/action-gh-release@v2
-      with:
-        name: Development Build
-        tag_name: "latest"
-        prerelease: true
-        files: |
-          artifact/*
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload tagged release
-      if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.preset != 'testing' &&  matrix.preset != 'nonet' }}
-      uses: softprops/action-gh-release@v2
-      with:
-        files: |
-          artifact/*
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

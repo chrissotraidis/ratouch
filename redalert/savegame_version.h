@@ -7,15 +7,15 @@
 constexpr unsigned int Red_Alert_Savegame_Version()
 {
     return DESCRIP_MAX + 0x01000006
-        + (sizeof(AircraftClass) + sizeof(AircraftTypeClass) + sizeof(AnimClass) + sizeof(AnimTypeClass)
-           + sizeof(BaseClass) + sizeof(BuildingClass) + sizeof(BuildingTypeClass) + sizeof(BulletClass)
-           + sizeof(BulletTypeClass) + sizeof(CellClass) + sizeof(FactoryClass) + sizeof(HouseClass)
-           + sizeof(HouseTypeClass) + sizeof(InfantryClass) + sizeof(InfantryTypeClass) + sizeof(LayerClass)
-           + sizeof(MouseClass) + sizeof(OverlayClass) + sizeof(OverlayTypeClass) + sizeof(SmudgeClass)
-           + sizeof(SmudgeTypeClass) + sizeof(TeamClass) + sizeof(TeamTypeClass) + sizeof(TemplateClass)
-           + sizeof(TemplateTypeClass) + sizeof(TerrainClass) + sizeof(TerrainTypeClass) + sizeof(TriggerClass)
-           + sizeof(TriggerTypeClass) + sizeof(UnitClass) + sizeof(UnitTypeClass) + sizeof(VesselClass)
-           + sizeof(ScenarioClass) + sizeof(ChronalVortexClass));
+           + (sizeof(AircraftClass) + sizeof(AircraftTypeClass) + sizeof(AnimClass) + sizeof(AnimTypeClass)
+              + sizeof(BaseClass) + sizeof(BuildingClass) + sizeof(BuildingTypeClass) + sizeof(BulletClass)
+              + sizeof(BulletTypeClass) + sizeof(CellClass) + sizeof(FactoryClass) + sizeof(HouseClass)
+              + sizeof(HouseTypeClass) + sizeof(InfantryClass) + sizeof(InfantryTypeClass) + sizeof(LayerClass)
+              + sizeof(MouseClass) + sizeof(OverlayClass) + sizeof(OverlayTypeClass) + sizeof(SmudgeClass)
+              + sizeof(SmudgeTypeClass) + sizeof(TeamClass) + sizeof(TeamTypeClass) + sizeof(TemplateClass)
+              + sizeof(TemplateTypeClass) + sizeof(TerrainClass) + sizeof(TerrainTypeClass) + sizeof(TriggerClass)
+              + sizeof(TriggerTypeClass) + sizeof(UnitClass) + sizeof(UnitTypeClass) + sizeof(VesselClass)
+              + sizeof(ScenarioClass) + sizeof(ChronalVortexClass));
 }
 
 constexpr unsigned int Red_Alert_Savegame_Header_Version()
