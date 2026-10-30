@@ -176,9 +176,6 @@ if(SDL2)
         find_package(SDL2 REQUIRED)
         list(APPEND VANILLA_LIBS ${SDL2_LIBRARY})
         include_directories(${SDL2_INCLUDE_DIR})
-        if(APPLE AND MAKE_BUNDLE)
-            list(APPEND VANILLA_DEFS RATOUCH_MACOS_BUILD)
-        endif()
     endif()
 
     # winuser.h defines VK_ macros but it can be prevented
