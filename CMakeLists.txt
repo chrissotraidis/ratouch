@@ -165,7 +165,7 @@ if(SDL2)
         FetchContent_Declare(
             SDL2
             GIT_REPOSITORY https://github.com/chrissotraidis/SDL.git
-            GIT_TAG c6756fcd3de8090a8f72ac1a0b6fb6e50f0021d1
+            GIT_TAG 090b0c5ade61395078f9ac0756474d9e475f7fa7
         )
         FetchContent_MakeAvailable(SDL2)
         list(APPEND VANILLA_LIBS SDL2::SDL2-static)
