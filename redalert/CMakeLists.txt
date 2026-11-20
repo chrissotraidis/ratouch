@@ -295,7 +295,7 @@ if(BUILD_VANILLARA)
         target_sources(VanillaRA PRIVATE "${RATOUCH_PRIVACY_MANIFEST}" "${RATOUCH_ASSET_CATALOG}")
         set_source_files_properties("${RATOUCH_PRIVACY_MANIFEST}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
         set_source_files_properties("${RATOUCH_ASSET_CATALOG}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-        target_link_options(VanillaRA PRIVATE "LINKER:-framework,UniformTypeIdentifiers")
+        target_link_options(VanillaRA PRIVATE "LINKER:-framework,UniformTypeIdentifiers" "LINKER:-framework,GameController")
         set_target_properties(VanillaRA PROPERTIES
             MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/apple/ios/Info.plist.in"
             XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"

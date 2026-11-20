@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#import <GameController/GameController.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 #include <SDL.h>
@@ -14,6 +15,7 @@
 namespace
 {
 UIWindow* Command_Window = nil;
+bool Command_Overlay_Requested = false;
 RatouchModifierState Modifier_State;
 NSString* const Command_Side_Defaults_Key = @"RatouchCommandTabOnRight";
 NSString* const Long_Press_Defaults_Key = @"RatouchLongPressMilliseconds";
@@ -1251,7 +1253,7 @@ void Toggle_One_Shot_Modifier(RatouchModifier modifier)
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations
 {
-    return UIInterfaceOrientationMaskLandscape;
+    return UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad ? UIInterfaceOrientationMaskAll : UIInterfaceOrientationMaskLandscape;
 }
 
 @end
@@ -1266,6 +1268,19 @@ void Refresh_Modifier_UI(RatouchModifier modifier)
         }
     });
 }
+}
+
+static void Update_Command_Overlay_Visibility()
+{
+    if (!Command_Window) {
+        return;
+    }
+    const bool visible = Command_Overlay_Requested && GCController.controllers.count == 0;
+    if (!visible && !Command_Window.hidden) {
+        Ratouch_iOS_Cancel_One_Shot_Modifier();
+        [(RatouchCommandViewController*)Command_Window.rootViewController closePalette];
+    }
+    Command_Window.hidden = !visible;
 }
 
 void Ratouch_Install_Command_Overlay(void)
@@ -1294,20 +1309,21 @@ void Ratouch_Install_Command_Overlay(void)
         Command_Window.backgroundColor = UIColor.clearColor;
         Command_Window.rootViewController = [[RatouchCommandViewController alloc] init];
         Command_Window.hidden = YES;
+        for (NSNotificationName name in @[GCControllerDidConnectNotification, GCControllerDidDisconnectNotification]) {
+            [NSNotificationCenter.defaultCenter addObserverForName:name object:nil
+                queue:NSOperationQueue.mainQueue usingBlock:^(__unused NSNotification* note) {
+                    Update_Command_Overlay_Visibility();
+                }];
+        }
+        Update_Command_Overlay_Visibility();
     });
 }
 
 void Ratouch_Set_Command_Overlay_Visible(bool visible)
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (Command_Window == nil) {
-            return;
-        }
-        if (!visible) {
-            Ratouch_iOS_Cancel_One_Shot_Modifier();
-            [(RatouchCommandViewController*)Command_Window.rootViewController closePalette];
-        }
-        Command_Window.hidden = !visible;
+        Command_Overlay_Requested = visible;
+        Update_Command_Overlay_Visibility();
     });
 }
 
